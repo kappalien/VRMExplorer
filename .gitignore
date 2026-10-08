@@ -1,0 +1,25 @@
+node_modules/
+dist/
+src-tauri/target/
+data/
+*.log
+test-results/
+playwright-report/
+build/
+releases/
+
+# Original user assets are never published with source code.
+*.vrm
+*.vrma
+
+# Local settings, credentials and databases.
+.env
+.env.*
+!.env.example
+*.sqlite
+*.sqlite3
+*.db
+*.db-shm
+*.db-wal
+*.pem
+*.key

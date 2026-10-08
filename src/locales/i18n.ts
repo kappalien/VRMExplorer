@@ -1,0 +1,136 @@
+import i18n from "i18next";
+import { initReactI18next } from "react-i18next";
+import { zhFeatures, enFeatures } from "./features";
+import { zhPreview, enPreview } from "./preview";
+import { zhLibrary, enLibrary } from "./library";
+import { zhPerformance, enPerformance } from "./performance";
+const zh = {
+  common: {
+    languageZh: "繁體中文",
+    languageEn: "English",
+    title: "VRM Explorer",
+    phase: "v1.1",
+    navigation: "導覽",
+    files: "檔案瀏覽器",
+    preview: "預覽工作區",
+    empty: "尚未開啟素材",
+    scope: "檔案瀏覽、模型與動畫功能將於後續階段提供。",
+    language: "語言",
+    theme: "佈景",
+    settingsPage: "設定",
+    closeSettings: "關閉",
+    fileSizeUnit: "檔案大小顯示單位",
+    sizeAuto: "自動（1024 進位）",
+    light: "淺色",
+    dark: "深色",
+    system: "跟隨系統",
+    splitter: "調整面板寬度",
+    ready: "設定已儲存",
+    loading: "正在讀取 Portable 設定",
+    browser: "瀏覽器介面檢視：不會保存設定",
+    portable: "Portable 資料位置",
+    animation: "動畫區",
+    external: "外部擴充尚未開放",
+    builtin: "內建系統資訊擴充",
+    runtime: "WebView2 模式",
+    saveFailed: "設定儲存失敗",
+    retry: "重試",
+  },
+  errors: {
+    desktopRequired: "需要 Tauri 桌面環境才能存取 Portable 資料。",
+    invalidSettings: "設定格式無效，請保留原檔並檢查設定。",
+    native: "無法存取 Portable 資料；請確認執行檔旁的 data 目錄可寫入。",
+  },
+};
+const en = {
+  common: {
+    languageZh: "繁體中文",
+    languageEn: "English",
+    title: "VRM Explorer",
+    phase: "v1.1",
+    navigation: "Navigation",
+    files: "File explorer",
+    preview: "Preview workspace",
+    empty: "No asset opened",
+    scope:
+      "File browsing, model and animation features arrive in later phases.",
+    language: "Language",
+    theme: "Theme",
+    settingsPage: "Settings",
+    closeSettings: "Close",
+    fileSizeUnit: "File size unit",
+    sizeAuto: "Automatic (base 1024)",
+    light: "Light",
+    dark: "Dark",
+    system: "Follow system",
+    splitter: "Resize panel",
+    ready: "Settings saved",
+    loading: "Loading Portable settings",
+    browser: "Browser UI review: settings are not saved",
+    portable: "Portable data location",
+    animation: "Animation panel",
+    external: "External plugins are unavailable",
+    builtin: "Built-in system information plugin",
+    runtime: "WebView2 mode",
+    saveFailed: "Could not save settings",
+    retry: "Retry",
+  },
+  errors: {
+    desktopRequired: "Portable storage requires the Tauri desktop application.",
+    invalidSettings:
+      "Invalid settings. Preserve the original file and check its contents.",
+    native:
+      "Cannot access Portable storage. Check that data beside the executable is writable.",
+  },
+};
+void i18n.use(initReactI18next).init({
+  resources: {
+    "zh-TW": {
+      ...zh,
+      ...zhFeatures,
+      preview: { ...zhFeatures.preview, ...zhPreview.preview },
+      animation: zhPreview.animation,
+      library: zhLibrary.library,
+      settings: zhPerformance.settings,
+      plugins: zhPerformance.plugins,
+      errors: {
+        ...zh.errors,
+        ...zhFeatures.errors,
+        ...zhPreview.errors,
+        ...zhLibrary.errors,
+        ...zhPerformance.errors,
+      },
+    },
+    en: {
+      ...en,
+      ...enFeatures,
+      preview: { ...enFeatures.preview, ...enPreview.preview },
+      animation: enPreview.animation,
+      library: enLibrary.library,
+      settings: enPerformance.settings,
+      plugins: enPerformance.plugins,
+      errors: {
+        ...en.errors,
+        ...enFeatures.errors,
+        ...enPreview.errors,
+        ...enLibrary.errors,
+        ...enPerformance.errors,
+      },
+    },
+  },
+  lng: "zh-TW",
+  fallbackLng: "en",
+  ns: [
+    "common",
+    "explorer",
+    "preview",
+    "animation",
+    "library",
+    "settings",
+    "plugins",
+    "errors",
+  ],
+  defaultNS: "common",
+  interpolation: { escapeValue: false },
+});
+export default i18n;
