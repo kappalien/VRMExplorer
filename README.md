@@ -107,7 +107,7 @@ npx playwright test tests/performance/explorer-navigation.spec.ts tests/performa
 | `tests/`         | 單元與 Edge 回歸測試                             |
 | `docs/`          | 架構、使用、測試與開發記錄                       |
 
-`node_modules/`、`src-tauri/target/`、`build/`、`releases/`、`data/` 與使用者 VRM／VRMA 不會進入 Git。公開原始碼與文件約 1.2 MiB；可攜 ZIP 另放 GitHub Release。
+`node_modules/`、`src-tauri/target/`、`build/`、`releases/`、`data/` 與使用者 VRM／VRMA 不會進入 Git。原始碼、文件、截圖、第三方授權與 MPL 原始碼封存合計約 5.1 MiB；可攜 ZIP 另放 GitHub Release。
 
 ## 授權與署名 / Licensing
 
