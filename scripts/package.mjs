@@ -24,7 +24,7 @@ for (const mode of ["Offline"]) {
   fs.mkdirSync(stage, { recursive: true });
   fs.copyFileSync(exe, path.join(stage, "vrm-explorer.exe"));
   fs.mkdirSync(path.join(stage, "docs"));
-  for (const file of ["portable-release.md", "v1.1-tests.md"])
+  for (const file of ["portable-release.md", "v1.1-tests.md", "licensing.md"])
     fs.copyFileSync(
       path.join(root, "docs", file),
       path.join(stage, "docs", file),
@@ -123,6 +123,35 @@ for (const mode of ["Offline"]) {
   fs.writeFileSync(
     path.join(licenses, "dependencies.json"),
     JSON.stringify(notices, null, 2),
+  );
+  const mplSources = JSON.parse(
+    fs.readFileSync(path.join(root, "licenses/sources.json")),
+  );
+  const mplDependencies = notices.filter((pkg) => pkg.license === "MPL-2.0");
+  if (
+    mplSources.length !== mplDependencies.length ||
+    mplDependencies.some(
+      (pkg) =>
+        !mplSources.some(
+          (source) =>
+            source.name === pkg.name && source.version === pkg.version,
+        ),
+    )
+  )
+    throw Error("MPL source archive must match locked dependency versions");
+  for (const file of ["mpl-sources.zip", "sources.json"])
+    fs.copyFileSync(
+      path.join(root, "licenses", file),
+      path.join(licenses, file),
+    );
+  const licensing = fs
+    .readFileSync(path.join(root, "docs/licensing.md"), "utf8")
+    .replaceAll("../licenses/third-party/", "../licenses/")
+    .replaceAll("../licenses/third-party)", "../licenses)");
+  fs.writeFileSync(path.join(stage, "docs/licensing.md"), licensing);
+  fs.writeFileSync(
+    path.join(licenses, "README.md"),
+    licensing.replaceAll("../licenses/", "./"),
   );
   if (mode === "Offline") {
     if (!fs.existsSync(path.join(runtime, "msedgewebview2.exe")))

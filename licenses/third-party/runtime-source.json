@@ -1,0 +1,5 @@
+{
+  "download": "https://developer.microsoft.com/en-us/microsoft-edge/webview2/",
+  "terms": "https://developer.microsoft.com/microsoft-edge/api/eula/webview2?locale=en-us&fixed=true",
+  "cabSha256": "e8f55a4bde27c7f82512402b56a58539b5ec8928be4e500e077b6f66c9ef4668"
+}

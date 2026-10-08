@@ -4,7 +4,7 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 
 ## 下載
 
-- [v1.1 Offline 可攜版（Windows x64，約 301 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.1.0/VRM-Explorer-1.1.0-Offline-win-x64.zip)
+- [v1.1 Offline 可攜版（Windows x64，約 310 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.1.0/VRM-Explorer-1.1.0-Offline-win-x64.zip)
 - [SHA-256 校驗碼](https://github.com/kappalien/VRMExplorer/releases/download/v1.1.0/VRM-Explorer-1.1.0-Offline-win-x64.zip.sha256)
 - [所有發行版本](https://github.com/kappalien/VRMExplorer/releases)
 
@@ -17,6 +17,8 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 ![VRM Explorer v1.1 使用範例：左側瀏覽 VRM 檔案、中央預覽模型，右側選擇 VRMA 姿勢與表情](docs/images/vrm-explorer-v1.1-example.png)
 
 左側選擇 VRM 檔案，中央預覽模型；右側選擇 VRMA 動畫或靜態姿勢，並切換模型支援的表情。圖中示範套用靜態姿勢。
+
+展示模型 **elegant_flower／power_plant**，並非本專案製作，模型檔未隨程式提供。依所提供條款禁止模型再散布與法人使用；截圖僅供個人操作展示。[模型與第三方授權說明](docs/licensing.md)
 
 ## 快速開始
 
@@ -106,6 +108,12 @@ npx playwright test tests/performance/explorer-navigation.spec.ts tests/performa
 | `docs/`          | 架構、使用、測試與開發記錄                       |
 
 `node_modules/`、`src-tauri/target/`、`build/`、`releases/`、`data/` 與使用者 VRM／VRMA 不會進入 Git。公開原始碼與文件約 1.2 MiB；可攜 ZIP 另放 GitHub Release。
+
+## 授權與署名 / Licensing
+
+使用或再散布前請閱讀 [授權與素材說明](docs/licensing.md)。第三方授權及著作權聲明見 `licenses/third-party/`，MPL 元件原始碼見 `licenses/mpl-sources.zip`。Microsoft Runtime 與展示模型各有獨立條款。原創專案內容尚未指定開源授權；Public 不代表任意商用或再散布許可。
+
+Third-party licenses, source availability and screenshot attribution are documented in [Licensing](docs/licensing.md). No general open-source license has been selected for original project content.
 
 ## English
 
