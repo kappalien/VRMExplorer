@@ -12,6 +12,12 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 
 目前發行目標為 **Windows 11 x64**。完整解壓後約 685 MiB，主要是隨附 Microsoft Fixed WebView2 Runtime 154.0.4258.62；使用程式不需安裝 Node.js、Rust 或 MSVC。
 
+## 使用範例
+
+![VRM Explorer v1.1 使用範例：左側瀏覽 VRM 檔案、中央預覽模型，右側選擇 VRMA 姿勢與表情](docs/images/vrm-explorer-v1.1-example.png)
+
+左側選擇 VRM 檔案，中央預覽模型；右側選擇 VRMA 動畫或靜態姿勢，並切換模型支援的表情。圖中示範套用靜態姿勢。
+
 ## 快速開始
 
 1. 將完整 ZIP 解壓至本機可寫入的資料夾。
