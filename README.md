@@ -1,4 +1,4 @@
-# VRM Explorer v1.1
+# VRM Explorer v1.1 (codex開發)
 
 Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用及可攜式為優先，原始素材唯讀；繁體中文預設，支援英文介面。
 
