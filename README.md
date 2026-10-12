@@ -85,17 +85,7 @@ powershell -File scripts/build.ps1
 
 若只需 UI 檢視，可以使用 `npm run dev`；瀏覽器模式不提供 Portable 檔案存取或設定保存。
 
-## 測試狀態
 
-v1.1 已執行並通過：**23 項 Vitest、17 項 Rust、4 項 Edge 測試**，以及 release build、lint、clippy、發行檔案雜湊與原生 Offline 啟動檢查。
-
-Edge 測試可用 `npm run test:performance` 執行，需要 Microsoft Edge。VRM／VRMA 測試使用本機 `src/Vivian.vrm` 與 `src/Test.vrma`；這些使用者素材不公開，需自行提供可合法使用且符合測試假設的樣本。沒有樣本時，可先執行不依賴模型的 UI／虛擬列表測試：
-
-```powershell
-npx playwright test tests/performance/explorer-navigation.spec.ts tests/performance/virtual-list.spec.ts
-```
-
-乾淨離線 VM、Windows 10、非管理員、完整 DPI／GPU 矩陣、完整 VRM1／VRMA 相容性與原生單幀姿勢視覺驗證：**Not Tested**。詳見 [v1.1 測試記錄](docs/v1.1-tests.md) 與 [發行包驗證](docs/v1.1-release-verification.md)。
 
 ## 專案結構
 
