@@ -14,9 +14,9 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 
 ## 使用範例
 
-![VRM Explorer v1.1 使用範例：左側瀏覽 VRM 檔案、中央預覽模型，右側選擇 VRMA 姿勢與表情](docs/images/vrm-explorer-v1.1-example.png)
+![VRM Explorer v1.2 使用範例：左側瀏覽 VRM 檔案、中央預覽模型，右側提供動畫與骨骼分頁](docs/images/vrm-explorer-v1.2-example.png)
 
-左側選擇 VRM 檔案，中央預覽模型；右側選擇 VRMA 動畫或靜態姿勢，並切換模型支援的表情。圖中示範套用靜態姿勢。
+左側選擇 VRM 檔案，中央預覽模型；右側可切換動畫與骨骼分頁。圖中示範播放 VRMA 動畫並選擇「悲傷」表情；中央下方可勾選骨骼疊加。
 
 展示模型 **elegant_flower／power_plant**，並非本專案製作，模型檔未隨程式提供。依所提供條款禁止模型再散布與法人使用；截圖僅供個人操作展示。[模型與第三方授權說明](docs/licensing.md)
 
