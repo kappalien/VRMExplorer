@@ -1,3 +1,4 @@
+import { inspectBones } from "./bones";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js";
@@ -13,6 +14,8 @@ import type { Playback } from "../../stores/preview";
 import { WorkQueue } from "../../core/work-queue";
 import { ExpressionControl, type ExpressionMode } from "./expressions";
 export class PreviewEngine {
+  private skeleton?: THREE.SkeletonHelper;
+  private showBones = false;
   private expressions = new ExpressionControl();
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
@@ -181,6 +184,10 @@ export class PreviewEngine {
           bones: Object.keys(vrm.humanoid.humanBones).length,
         },
       });
+      this.onState({
+        bones: inspectBones(vrm.humanoid, vrm.meta.metaVersion === "0"),
+      });
+      this.setBones(this.showBones);
       this.bind();
     } catch (e) {
       if (!this.disposed && epoch === this.modelEpoch) {
@@ -376,6 +383,24 @@ export class PreviewEngine {
     this.lights.visible = lights;
     this.renderer.setClearColor(background);
   }
+  setBones(visible: boolean) {
+    this.showBones = visible;
+    if (visible && this.vrm && !this.skeleton) {
+      const root = this.vrm.humanoid.getRawBoneNode("hips");
+      if (root) {
+        this.skeleton = new THREE.SkeletonHelper(root);
+        for (const material of Array.isArray(this.skeleton.material)
+          ? this.skeleton.material
+          : [this.skeleton.material]) {
+          material.depthTest = false;
+          material.depthWrite = false;
+        }
+        this.skeleton.renderOrder = 1000;
+        this.scene.add(this.skeleton);
+      }
+    }
+    if (this.skeleton) this.skeleton.visible = visible;
+  }
   private clearAction() {
     this.staticPose = false;
     if (this.mixer && this.vrm) {
@@ -397,6 +422,11 @@ export class PreviewEngine {
   }
   private clearModel() {
     this.clearAction();
+    if (this.skeleton) {
+      this.scene.remove(this.skeleton);
+      this.skeleton.dispose();
+      this.skeleton = undefined;
+    }
     if (this.vrm) {
       this.scene.remove(this.vrm.scene);
       VRMUtils.deepDispose(this.vrm.scene);
@@ -406,6 +436,7 @@ export class PreviewEngine {
     this.onState({
       hasModel: false,
       metadata: {},
+      bones: [],
       expression: "animation",
       availableExpressions: [],
     });

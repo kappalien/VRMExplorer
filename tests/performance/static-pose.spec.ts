@@ -144,11 +144,20 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.locator(".badge")).toHaveText("v1.1");
+  await expect(page.locator(".badge")).toHaveText("v1.2");
   await page.getByRole("button", { name: "開啟 VRM", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "重新取景", exact: true }),
   ).toBeEnabled();
+  await page.getByRole("checkbox", { name: "骨骼疊加", exact: true }).check();
+  await page.getByRole("tab", { name: "骨骼", exact: true }).click();
+  await expect(
+    page.getByRole("table", { name: "人形骨骼對應表" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("tabpanel", { name: "骨骼", exact: true }),
+  ).toContainText("必要骨骼映射完整");
+  await page.getByRole("tab", { name: "動畫區", exact: true }).click();
   await page.getByRole("button", { name: "選擇來源", exact: true }).click();
   await page
     .getByRole("button", { name: "單幀姿勢.vrma", exact: true })

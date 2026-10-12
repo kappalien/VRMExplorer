@@ -1,3 +1,4 @@
+import type { BoneInfo } from "../features/vrm-preview/bones";
 import { create } from "zustand";
 import type { AssetEntry } from "../core/assets";
 import type {
@@ -5,6 +6,7 @@ import type {
   ExpressionPreset,
 } from "../features/vrm-preview/expressions";
 export interface Playback {
+  bones: BoneInfo[];
   expression: ExpressionMode;
   availableExpressions: ExpressionPreset[];
   hasModel: boolean;
@@ -21,6 +23,7 @@ export interface Playback {
   clipPath: string;
 }
 export const initialPlayback: Playback = {
+  bones: [],
   expression: "animation",
   availableExpressions: [],
   hasModel: false,

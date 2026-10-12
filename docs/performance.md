@@ -17,3 +17,6 @@ VRM 0.x 使用 meta.texture → textures[].source；VRM 1.0 使用 [官方 meta.
 Rust 併發計數使用 AtomicUsize::try_update；核對 [Rust 官方 atomic 原始碼](https://raw.githubusercontent.com/rust-lang/rust/master/library/core/src/sync/atomic.rs) 與本機 Rust 1.99 compiler。舊 fetch_update 在 1.99 deprecated，未抑制警告。
 
 Not Tested：大量真實圖片、真實 VRM 封面與動畫、GPU/USB 壓力、長期記憶體趨勢、撤銷/清除與實際解碼並行的長期競態。TOCTOU 路徑風險仍待 handle-based 開檔強化；目前重驗 reparse/path containment，寫入前重驗原檔 metadata。
+
+
+自訂 Plugin 架構已移除；歷史測試中的 Plugin 項目不再適用。CacheSettings 的受控快取操作與列表/預覽佇列保留，系統資訊改為設定頁直接呈現。

@@ -1,6 +1,7 @@
+import { version } from "../../package.json";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Box, Puzzle } from "lucide-react";
+import { Box } from "lucide-react";
 import { Splitter } from "../components/Splitter";
 import {
   desktopAvailable,
@@ -8,12 +9,6 @@ import {
   saveSettings,
   type PortableInfo,
 } from "../core/portable";
-import {
-  PluginRegistry,
-  type PanelContribution,
-  type CommandContribution,
-} from "../core/plugins";
-import { invoke } from "@tauri-apps/api/core";
 import { useSettings } from "../stores/settings";
 import { sizeUnits, type Settings } from "../core/settings";
 import { ExplorerToolbar, ExplorerFiles } from "../features/explorer/Explorer";
@@ -29,10 +24,6 @@ export function App() {
   const [error, setError] = useState("");
   const [saved, setSaved] = useState(false);
   const [attempt, setAttempt] = useState(0);
-  const [panels, setPanels] = useState<PanelContribution[]>([]);
-  const [commands, setCommands] = useState<CommandContribution[]>([]);
-  const [commandBusy, setCommandBusy] = useState(false);
-  const [commandError, setCommandError] = useState("");
   useEffect(() => {
     let alive = true;
     if (!desktopAvailable) return;
@@ -90,28 +81,6 @@ export function App() {
     media.addEventListener("change", apply);
     return () => media.removeEventListener("change", apply);
   }, [settings.theme]);
-  useEffect(() => {
-    const registry = new PluginRegistry();
-    for (const plugin of registry.discover())
-      registry.activate(plugin, {
-        log: () => {},
-        translate: (key) => i18n.t(key),
-        registerPanel: (panel) => {
-          setPanels((p) => [...p, panel]);
-          return () => setPanels((p) => p.filter((v) => v.id !== panel.id));
-        },
-        registerCommand: (command) => {
-          setCommands((v) => [...v, command]);
-          return () => setCommands((v) => v.filter((c) => c.id !== command.id));
-        },
-        clearThumbnailCache: async () => {
-          await invoke("cache_control", { action: "clear", limitMib: null });
-        },
-      });
-    return () => {
-      registry.dispose();
-    };
-  }, [i18n]);
   const update = (patch: Partial<Settings>) => {
     setSaved(false);
     set({ ...settings, ...patch });
@@ -218,41 +187,20 @@ export function App() {
         </label>
         <section className="settings-tools">
           <CacheSettings />
-          {commands.map((c) => (
-            <button
-              key={c.id}
-              disabled={!desktopAvailable || commandBusy}
-              onClick={() => {
-                setCommandBusy(true);
-                setCommandError("");
-                void c
-                  .run()
-                  .catch(() => setCommandError("plugins:commandFailed"))
-                  .finally(() => setCommandBusy(false));
-              }}
-            >
-              {t(c.labelKey)}
-            </button>
-          ))}
-          {commandError && (
-            <p className="error" role="alert">
-              {t(commandError)}
+          <section className="info">
+            <h3>{t("systemInfo")}</h3>
+            <p>
+              {t("appVersion")}: {version}
             </p>
-          )}
-          {panels.map((p) => (
-            <section className="info" key={p.id}>
-              <h3>
-                <Puzzle size={16} />
-                {t(p.titleKey)}
-              </h3>
-              <p>{t("portable")}</p>
-              <code>{info?.root ?? "—"}</code>
-              <p>
-                {t("runtime")}: {info?.runtime ?? "—"}
-              </p>
-              <small>{t("external")}</small>
-            </section>
-          ))}
+            <p>
+              {t("runtime")}:{" "}
+              {info?.runtime === "fixed"
+                ? t("runtimeFixed")
+                : info?.runtime === "system"
+                  ? t("runtimeSystem")
+                  : "—"}
+            </p>
+          </section>
         </section>
       </dialog>
       <footer role="status">

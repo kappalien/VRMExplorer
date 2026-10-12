@@ -544,3 +544,37 @@ code {
   background: var(--accent);
   color: white;
 }
+
+.workspace-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 8px;
+}
+.workspace-tabs [aria-selected="true"] {
+  border-color: var(--accent);
+  font-weight: 600;
+}
+.bone-table-scroll {
+  max-height: 320px;
+  overflow: auto;
+}
+.bone-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+.bone-table th,
+.bone-table td {
+  padding: 5px 8px;
+  overflow-wrap: anywhere;
+  border-bottom: 1px solid var(--line);
+}
+.bone-table th small {
+  display: block;
+  font-weight: normal;
+}
+.bone-table caption {
+  text-align: left;
+  margin-bottom: 8px;
+}

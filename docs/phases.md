@@ -52,3 +52,28 @@ Phase 5 下一步：縮圖快取、lazy loading/併發限制、列表虛擬化�
 
 完整矩陣與限制見 [Phase 6 QA](qa-phase6.md)，操作與升級見 [Portable 發行說明](portable-release.md)。乾淨無網路/無管理員/無 Node 機器、VRM1/VRMA、多磁碟、USB/DPI/長期 GPU soak 尚為 Not Tested。UI tree、multi-select、原尺寸圖片模式及 10k+ SQL paging 仍有既有缺口。不能宣稱所有規格或正式離線驗收已完成；目前停止於最後 Phase 6 的候選發行邊界，等待上述測試環境與樣本後完成驗收。
 
+## 骨骼檢視增補階段
+
+依使用者要求，維持既有三欄與動畫區配置：格線旁增加預設關閉的骨骼疊加勾選，動畫區增加動畫／骨骼分頁（鍵盤左右/Home/End 切換），切換不卸載動畫控制。模型載入後一次建立原始人形骨骼映射、父節點及必要/選用狀態。VRM 0.x 將 chest、neck 列為必要，1.0 則選用。缺少映射提示限於成功載入的模型；loader 拒絕的模型仍顯示原有載入錯誤。
+
+疊加按需建立 SkeletonHelper，根節點為 raw hips，顯示其以下骨架（含非人形後代），不顯示另一套 normalized rig。關閉時隱藏，切換/載入失敗/卸載時 dispose。使用既有渲染迴圈，無額外讀檔，原始素材不變。只檢查必要映射，未宣稱蒙皮、姿勢或階層完整驗證；本階段不含 Spring Bone 設定面板。
+
+官方核對：[Three.js SkeletonHelper](https://threejs.org/docs/pages/SkeletonHelper.html)、[pixiv VRMHumanoid](https://pixiv.github.io/three-vrm/docs/classes/three-vrm.VRMHumanoid.html)、[VRM 人形骨架規格](https://github.com/vrm-c/vrm-specification/blob/master/specification/VRMC_vrm-1.0/humanoid.md)，並核對安裝版 3.5.5 型別。
+
+驗證：production build 與 ESLint 通過；Vite 既有 3D chunk 超過 500 kB 提示仍存在。單元測試 8 個檔案、24 項通過，含骨骼映射/版本差異/面板提示及既有動畫回歸。首次測試受 sandbox 暫存檔 ENOENT 影響，改用 workspace .tmp-tests 後通過。Not Tested：Windows 桌面真實 VRM 骨架視覺效果、動畫期間疊加與 GPU 長期效能、窄視窗人工版面驗收。此增補階段完成即停止，不展開格式轉換或縮圖快照。
+
+## 自訂 Plugin 移除階段
+
+依使用者要求移除 src/core/plugins.ts 的 Registry、Manifest、生命週期、Provider 介面與內建範例，以及 App 中的註冊、Puzzle 圖示、外部擴充提示、重複清除快取命令、plugins i18n namespace。系統資訊直接顯示於原設定頁位置，縮圖容量/清除功能沿用 CacheSettings；不更動預覽、動畫、骨骼與清單流程。
+
+Portable 初始化停止建立 data/plugins、plugins/builtin、plugins/external；不刪除或讀取既有內容，發行排除與升級保留規則不變。官方 Tauri dialog 與 pixiv loader plugins 保留，屬於核心相依功能。正式規格已同步更新，歷史階段與既有發行包紀錄保留。
+
+驗證：18 項 Vitest、18 項 Rust 測試、2 項無頭 Edge 回歸測試通過；production build、ESLint、Rust fmt 與 Clippy 通過。Edge 使用獨立 1421 埠，驗證系統資訊/快取入口保留、Plugin 入口消失及瀏覽/虛擬清單。前端測試數下降是刪除 6 項已移除架構的測試；保留原有功能測試。Vite 既有 3D chunk 大小警告仍存在。Not Tested：真實桌面 GPU/VRM/VRMA 視覺回歸、新可攜包。本階段未封裝或發布新可攜版，完成後停止。
+
+## 設定系統資訊精簡階段
+
+依使用者要求移除設定頁 Portable 資料位置顯示，原位置改顯示應用版本（由 package.json 取得）與本地化 WebView2 模式（隨附離線／系統安裝）。保持原版面與 Portable 儲存邏輯。18 項前端單元測試、設定/檔案瀏覽 Edge 回歸、production build、ESLint 通過。Edge 核對路徑不顯示及新資訊可見；既有 3D chunk 大小警告保留。Not Tested：原生桌面目視驗收。本階段未封裝可攜版，完成後停止。
+
+## v1.2 可攜版發行階段
+
+版本升至 1.2.0；GitHub 現有 README 與歷史功能/授權說明為基礎，補充骨骼疊加、動畫/骨骼分頁、必要映射提示、自訂 Plugin 移除及設定資訊精簡。新版更新說明僅描述功能與使用方式。離線可攜包加入 v1.2 功能說明，沿用 Microsoft Fixed WebView2 與第三方授權，排除 VRM/VRMA、個人資料與設定。舊可攜下載在新版發布完成後移除，歷史 Release 說明與原始碼版本保留。

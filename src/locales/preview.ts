@@ -1,5 +1,24 @@
 export const zhPreview = {
   preview: {
+    bones: "骨骼疊加",
+    boneTab: "骨骼",
+    inspectionTabs: "動畫與骨骼檢視",
+    boneEmpty: "請先載入 VRM 模型。",
+    boneMissing: "缺少 {{count}} 個必要骨骼映射。",
+    boneComplete: "必要骨骼映射完整。",
+    boneScope:
+      "顯示原始人形骨骼映射；疊加顯示 hips 以下的骨架。此檢查不代表蒙皮或階層已驗證。",
+    boneMapping: "人形骨骼對應表",
+    boneStandard: "標準骨骼",
+    boneNode: "模型節點",
+    boneParent: "父節點",
+    boneStatus: "狀態",
+    boneRequired: "必要",
+    boneOptional: "選用",
+    boneUnset: "未設定",
+    boneAssigned: "已對應",
+    boneMissingStatus: "缺少必要映射",
+
     openModel: "開啟 VRM",
     front: "正面",
     back: "背面",
@@ -84,6 +103,25 @@ export const zhPreview = {
 };
 export const enPreview = {
   preview: {
+    bones: "Skeleton overlay",
+    boneTab: "Bones",
+    inspectionTabs: "Animation and bone inspection",
+    boneEmpty: "Load a VRM model first.",
+    boneMissing: "{{count}} required bone mappings are missing.",
+    boneComplete: "Required bone mappings are complete.",
+    boneScope:
+      "Raw humanoid mappings; the overlay shows the skeleton below hips. This does not validate skin weights or hierarchy.",
+    boneMapping: "Humanoid bone mappings",
+    boneStandard: "Standard bone",
+    boneNode: "Model node",
+    boneParent: "Parent node",
+    boneStatus: "Status",
+    boneRequired: "Required",
+    boneOptional: "Optional",
+    boneUnset: "Unassigned",
+    boneAssigned: "Assigned",
+    boneMissingStatus: "Required mapping missing",
+
     openModel: "Open VRM",
     front: "Front",
     back: "Back",

@@ -1,3 +1,4 @@
+import { BonePanel } from "./BonePanel";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,6 +27,8 @@ export function PreviewWorkspace({
   const { model, animation, playback, setModel, setAnimation, update } =
     usePreview();
   const selected = useExplorer((s) => s.selected);
+  const [tab, setTab] = useState<"animation" | "bones">("animation");
+  const [bones, setBones] = useState(false);
   const [grid, setGrid] = useState(true);
   const [axes, setAxes] = useState(true);
   const [lights, setLights] = useState(true);
@@ -62,6 +65,9 @@ export function PreviewWorkspace({
   useEffect(() => {
     if (animation) void engine.current?.loadAnimation(animation.path);
   }, [animation, engineVersion]);
+  useEffect(() => {
+    engine.current?.setBones(bones);
+  }, [bones, engineVersion]);
   useEffect(() => {
     engine.current?.options(grid, axes, lights, background);
   }, [grid, axes, lights, background, engineVersion]);
@@ -135,6 +141,7 @@ export function PreviewWorkspace({
       <div className="scene-options">
         {[
           ["grid", grid, setGrid],
+          ["bones", bones, setBones],
           ["axes", axes, setAxes],
           ["lights", lights, setLights],
         ].map(([name, value, setter]) => (
@@ -181,115 +188,174 @@ export function PreviewWorkspace({
       {animationHost &&
         createPortal(
           <div className="animation-workspace">
-            <h2>{t("animation")}</h2>
-            <AnimationLibrary />
-            <p>{animation?.name ?? t("animation:empty")}</p>
-            {!playback.hasModel && <p>{t("animation:needModel")}</p>}
-            <section
-              className="expression-controls"
-              aria-label={t("animation:expressions")}
+            <div
+              className="workspace-tabs"
+              role="tablist"
+              aria-label={t("preview:inspectionTabs")}
             >
-              <h3>{t("animation:expressions")}</h3>
-              <div className="expression-buttons">
-                {(["animation", ...expressionPresets] as const).map((name) => {
-                  const supported =
-                    name === "animation" ||
-                    playback.availableExpressions.includes(name);
-                  return (
-                    <button
-                      key={name}
-                      disabled={!playback.hasModel || !supported}
-                      aria-pressed={playback.expression === name}
-                      title={
-                        !supported
-                          ? t("animation:expressionUnavailable")
-                          : undefined
-                      }
-                      onClick={() => engine.current?.setExpression(name)}
-                    >
-                      {t("animation:expression." + name)}
-                    </button>
-                  );
-                })}
-              </div>
-              {playback.hasModel &&
-                playback.availableExpressions.length <
-                  expressionPresets.length && (
-                  <small>{t("animation:expressionUnavailable")}</small>
-                )}
-            </section>
-            <div className="play-controls">
-              <button
-                disabled={!playback.hasClip}
-                onClick={() =>
-                  playback.playing
-                    ? engine.current?.pause()
-                    : engine.current?.play()
-                }
-              >
-                {t(
-                  playback.staticPose
-                    ? "animation:applyPose"
-                    : playback.playing
-                      ? "animation:pause"
-                      : "animation:play",
-                )}
-              </button>
-              <button
-                disabled={!playback.hasClip}
-                onClick={() => engine.current?.stop()}
-              >
-                {t("animation:stop")}
-              </button>
-              <button
-                disabled={!playback.hasClip}
-                onClick={() => {
-                  engine.current?.stop();
-                  engine.current?.play();
-                }}
-              >
-                {t("animation:replay")}
-              </button>
-              <label>
-                <input
-                  type="checkbox"
-                  disabled={playback.staticPose}
-                  checked={playback.loop}
-                  onChange={(e) => engine.current?.setLoop(e.target.checked)}
-                />
-                {t("animation:loop")}
-              </label>
-              <select
-                disabled={playback.staticPose}
-                aria-label={t("animation:speed")}
-                value={playback.speed}
-                onChange={(e) =>
-                  engine.current?.setSpeed(Number(e.target.value))
-                }
-              >
-                {[0.25, 0.5, 1, 1.5, 2].map((v) => (
-                  <option key={v} value={v}>
-                    {v}×
-                  </option>
-                ))}
-              </select>
+              {(["animation", "bones"] as const).map((name) => (
+                <button
+                  key={name}
+                  type="button"
+                  role="tab"
+                  id={`inspection-tab-${name}`}
+                  aria-controls={`inspection-panel-${name}`}
+                  aria-selected={tab === name}
+                  tabIndex={tab === name ? 0 : -1}
+                  onKeyDown={(e) => {
+                    if (
+                      ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
+                    ) {
+                      e.preventDefault();
+                      const next =
+                        e.key === "Home"
+                          ? "animation"
+                          : e.key === "End"
+                            ? "bones"
+                            : tab === "animation"
+                              ? "bones"
+                              : "animation";
+                      setTab(next);
+                      document
+                        .getElementById(`inspection-tab-${next}`)
+                        ?.focus();
+                    }
+                  }}
+                  onClick={() => setTab(name)}
+                >
+                  {t(
+                    name === "animation"
+                      ? "common:animation"
+                      : "preview:boneTab",
+                  )}
+                </button>
+              ))}
             </div>
-            <input
-              className="timeline"
-              type="range"
-              min="0"
-              max={playback.duration || 1}
-              step=".01"
-              value={playback.time}
-              disabled={!playback.hasClip || playback.staticPose}
-              aria-label={t("animation:timeline")}
-              onChange={(e) => engine.current?.seek(Number(e.target.value))}
-            />
-            <small>
-              {playback.staticPose
-                ? t("animation:staticPose")
-                : `${playback.time.toFixed(2)} / ${playback.duration.toFixed(2)} ${t("animation:seconds")}`}
-            </small>
+            <div
+              role="tabpanel"
+              id="inspection-panel-bones"
+              aria-labelledby="inspection-tab-bones"
+              hidden={tab !== "bones"}
+            >
+              <BonePanel bones={playback.bones} hasModel={playback.hasModel} />
+            </div>
+            <div
+              role="tabpanel"
+              id="inspection-panel-animation"
+              aria-labelledby="inspection-tab-animation"
+              hidden={tab !== "animation"}
+            >
+              <AnimationLibrary />
+              <p>{animation?.name ?? t("animation:empty")}</p>
+              {!playback.hasModel && <p>{t("animation:needModel")}</p>}
+              <section
+                className="expression-controls"
+                aria-label={t("animation:expressions")}
+              >
+                <h3>{t("animation:expressions")}</h3>
+                <div className="expression-buttons">
+                  {(["animation", ...expressionPresets] as const).map(
+                    (name) => {
+                      const supported =
+                        name === "animation" ||
+                        playback.availableExpressions.includes(name);
+                      return (
+                        <button
+                          key={name}
+                          disabled={!playback.hasModel || !supported}
+                          aria-pressed={playback.expression === name}
+                          title={
+                            !supported
+                              ? t("animation:expressionUnavailable")
+                              : undefined
+                          }
+                          onClick={() => engine.current?.setExpression(name)}
+                        >
+                          {t("animation:expression." + name)}
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+                {playback.hasModel &&
+                  playback.availableExpressions.length <
+                    expressionPresets.length && (
+                    <small>{t("animation:expressionUnavailable")}</small>
+                  )}
+              </section>
+              <div className="play-controls">
+                <button
+                  disabled={!playback.hasClip}
+                  onClick={() =>
+                    playback.playing
+                      ? engine.current?.pause()
+                      : engine.current?.play()
+                  }
+                >
+                  {t(
+                    playback.staticPose
+                      ? "animation:applyPose"
+                      : playback.playing
+                        ? "animation:pause"
+                        : "animation:play",
+                  )}
+                </button>
+                <button
+                  disabled={!playback.hasClip}
+                  onClick={() => engine.current?.stop()}
+                >
+                  {t("animation:stop")}
+                </button>
+                <button
+                  disabled={!playback.hasClip}
+                  onClick={() => {
+                    engine.current?.stop();
+                    engine.current?.play();
+                  }}
+                >
+                  {t("animation:replay")}
+                </button>
+                <label>
+                  <input
+                    type="checkbox"
+                    disabled={playback.staticPose}
+                    checked={playback.loop}
+                    onChange={(e) => engine.current?.setLoop(e.target.checked)}
+                  />
+                  {t("animation:loop")}
+                </label>
+                <select
+                  disabled={playback.staticPose}
+                  aria-label={t("animation:speed")}
+                  value={playback.speed}
+                  onChange={(e) =>
+                    engine.current?.setSpeed(Number(e.target.value))
+                  }
+                >
+                  {[0.25, 0.5, 1, 1.5, 2].map((v) => (
+                    <option key={v} value={v}>
+                      {v}×
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <input
+                className="timeline"
+                type="range"
+                min="0"
+                max={playback.duration || 1}
+                step=".01"
+                value={playback.time}
+                disabled={!playback.hasClip || playback.staticPose}
+                aria-label={t("animation:timeline")}
+                onChange={(e) => engine.current?.seek(Number(e.target.value))}
+              />
+              <small>
+                {playback.staticPose
+                  ? t("animation:staticPose")
+                  : `${playback.time.toFixed(2)} / ${playback.duration.toFixed(2)} ${t("animation:seconds")}`}
+              </small>
+            </div>
           </div>,
           animationHost,
         )}

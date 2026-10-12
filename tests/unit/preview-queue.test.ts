@@ -41,7 +41,11 @@ it("failed replacement clears the previous model and its resources", async () =>
       vrm: {
         scene,
         meta: { metaVersion: "1", name: "old" },
-        humanoid: { humanBones: {}, resetNormalizedPose: vi.fn() },
+        humanoid: {
+          humanBones: {},
+          getRawBoneNode: () => null,
+          resetNormalizedPose: vi.fn(),
+        },
       },
     },
   });
@@ -201,6 +205,7 @@ it("zero-duration VRMA applies a held pose, skips absent optional bones and stil
     update: vi.fn(),
     humanoid: {
       humanBones: { leftUpperArm: {} },
+      getRawBoneNode: (bone: string) => (bone === "leftUpperArm" ? arm : null),
       getNormalizedBoneNode: (bone: string) =>
         bone === "leftUpperArm" ? arm : null,
       resetNormalizedPose: () => arm.quaternion.identity(),

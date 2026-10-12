@@ -24,7 +24,11 @@ for (const mode of ["Offline"]) {
   fs.mkdirSync(stage, { recursive: true });
   fs.copyFileSync(exe, path.join(stage, "vrm-explorer.exe"));
   fs.mkdirSync(path.join(stage, "docs"));
-  for (const file of ["portable-release.md", "v1.1-tests.md", "licensing.md"])
+  for (const file of [
+    "portable-release.md",
+    "v1.2-release-notes.md",
+    "licensing.md",
+  ])
     fs.copyFileSync(
       path.join(root, "docs", file),
       path.join(stage, "docs", file),
@@ -189,7 +193,7 @@ for (const mode of ["Offline"]) {
         runtimeMode: mode === "Offline" ? "fixed" : "system",
         runtimeVersion: mode === "Offline" ? "154.0.4258.62" : null,
         minimumOs: "Windows 11 x64",
-        qualification: "v1.1; clean offline machine: Not Tested",
+        qualification: `v${version}; clean offline machine: Not Tested`,
         files,
       },
       null,

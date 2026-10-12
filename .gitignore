@@ -23,3 +23,6 @@ releases/
 *.db-wal
 *.pem
 *.key
+
+# Local test runner temporary files.
+.tmp-tests/

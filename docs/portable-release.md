@@ -1,6 +1,6 @@
-# VRM Explorer v1.1 Portable Offline
+# VRM Explorer v1.2 Portable Offline
 
-下載並完整解壓 `VRM-Explorer-1.1.0-Offline-win-x64.zip`，開啟其中的 `vrm-explorer.exe`。最低發行目標 Windows 11 x64，請使用本機可寫入的資料夾。不要從壓縮檔、唯讀媒體或 UNC 路徑執行。隨附 Fixed WebView2 Runtime 154.0.4258.62；無需安裝 Node.js、Rust 或 MSVC。
+下載並完整解壓 `VRM-Explorer-1.2.0-Offline-win-x64.zip`，開啟其中的 `vrm-explorer.exe`。最低發行目標 Windows 11 x64，請使用本機可寫入的資料夾。不要從壓縮檔、唯讀媒體或 UNC 路徑執行。隨附 Fixed WebView2 Runtime 154.0.4258.62；無需安裝 Node.js、Rust 或 MSVC。
 
 Extract the complete ZIP into a writable local folder, then run `vrm-explorer.exe`. Target: Windows 11 x64. Fixed WebView2 Runtime 154.0.4258.62 is included; Node.js, Rust and MSVC are development tools only. Clean offline VM, non-admin and Windows 10 qualification: Not Tested.
 
@@ -10,6 +10,10 @@ Before using Offline, read and agree to the Microsoft terms in licenses/Microsof
 
 Fixed Runtime 不會自動更新；請定期取得新版完整發行包。官方發行說明：https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution 。
 
+## v1.2 功能更新
+
+預覽區新增骨骼疊加勾選，動畫區增加骨骼分頁，顯示人形骨骼映射、父節點與必要骨骼狀態。設定頁改顯示版本與 WebView2 模式，不顯示資料路徑。自訂 Plugin 功能移除，快取管理保留。[完整更新說明](v1.2-release-notes.md)
+
 ## 操作 / Usage
 
 左側可選擇磁碟、輸入路徑，雙擊資料夾進入，點選 VRM 預覽。工具列右側小圖示可切換精簡清單／縮圖。中央滑鼠拖曳旋轉，滾輪以游標位置縮放。右側選擇 VRMA 來源後自動掃描，點選檔名再按播放；單幀 VRMA 會顯示「套用姿勢」，按下後保持靜態姿勢，停止可回復。動畫區提供自然、開心、生氣、悲傷、放鬆、驚訝與跟隨動畫；實際可用表情由模型提供，未提供的項目停用。
@@ -18,9 +22,9 @@ Fixed Runtime 不會自動更新；請定期取得新版完整發行包。官方
 
 Browse folders on the left, preview VRM in the center, and choose a VRMA source on the right. Select a motion filename, then Play. Zero-duration single-frame VRMA uses Apply pose and holds the pose; Stop resets it. The small toolbar icon switches compact list / thumbnails without adding a toolbar row. Expression controls offer Neutral, Happy, Angry, Sad, Relaxed, Surprised and Follow animation; unavailable model expressions are disabled. Wheel zoom centers on the cursor. Last folder and motion source are restored on startup. Settings contains language, theme, file size units and cache options.
 
-所有設定、SQLite、快取與 WebView 資料只寫在執行檔旁 `data/`；不可寫入時報錯，沒有 AppData fallback。原始素材唯讀，包內不含使用者素材或資料。內建 Plugin 靜態編譯，外部執行碼不開放。
+所有設定、SQLite、快取與 WebView 資料只寫在執行檔旁 `data/`；不可寫入時報錯，沒有 AppData fallback。原始素材唯讀，包內不含使用者素材或資料。自訂 Plugin 功能已移除；既有 Plugin 資料不刪除，外部執行碼不執行。
 
-Data stays in `data/` beside the executable. Original assets are read-only. User assets/data are excluded from the release. External executable plugins are disabled.
+Data stays in `data/` beside the executable. Original assets are read-only. User assets/data are excluded from the release. Custom plugin support has been removed. Existing plugin folders are preserved as user data.
 
 ## 升級 / Upgrade
 

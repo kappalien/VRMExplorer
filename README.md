@@ -1,11 +1,11 @@
-# VRM Explorer v1.1 (codex開發)
+# VRM Explorer v1.2 (codex開發)
 
 Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用及可攜式為優先，原始素材唯讀；繁體中文預設，支援英文介面。
 
 ## 下載
 
-- [v1.1 Offline 可攜版（Windows x64，約 310 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.1.0/VRM-Explorer-1.1.0-Offline-win-x64.zip)
-- [SHA-256 校驗碼](https://github.com/kappalien/VRMExplorer/releases/download/v1.1.0/VRM-Explorer-1.1.0-Offline-win-x64.zip.sha256)
+- [v1.2 Offline 可攜版（Windows x64，約 301 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.2.0/VRM-Explorer-1.2.0-Offline-win-x64.zip)
+- [SHA-256 校驗碼](https://github.com/kappalien/VRMExplorer/releases/download/v1.2.0/VRM-Explorer-1.2.0-Offline-win-x64.zip.sha256)
 - [所有發行版本](https://github.com/kappalien/VRMExplorer/releases)
 
 一般使用者請下載上面的 Offline ZIP。GitHub 的 **Code → Download ZIP** 是原始碼，不能直接啟動。
@@ -32,12 +32,23 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 ## 功能
 
 - **檔案瀏覽**：上一個／下一個／上一層、磁碟選擇與路徑輸入。工具列的小圖示切換精簡清單／縮圖，維持工具列高度。
+- **骨骼檢視**：骨架疊加、人形骨骼映射、父節點與必要骨骼提示，與動畫區共用分頁。
 - **中央預覽**：VRM 0.x／1.0 預覽引擎、圖片預覽、旋轉與重新取景；滑鼠滾輪以游標位置為中心縮放。
 - **動畫區**：獨立來源自動掃描、簡單檔名清單、播放／暫停／停止／重播、循環、速度與時間軸；支援長度為 0 的單幀姿勢。
 - **表情**：自然、開心、生氣、悲傷、放鬆、驚訝及跟隨動畫；模型未提供的表情會停用。
 - **設定頁面**：繁中／英文、淺色／深色／跟隨系統、檔案大小單位及快取。大小可選自動、B、KB／MB／GB、KiB／MiB／GiB。
 - **Portable 資料**：設定、動畫索引、快取與 WebView 資料只寫在執行檔旁 `data/`，不會偷偷改寫到 AppData。
 - **素材安全**：VRM、VRMA 與圖片唯讀；不執行外部 JavaScript、DLL Plugin 或遠端執行碼。
+
+## v1.2 更新
+
+- **骨骼疊加**：中央預覽的勾選項可顯示模型骨架，預設關閉，沿用既有渲染畫面。
+- **骨骼分頁**：動畫區加入「動畫／骨骼」分頁，不改三欄配置；顯示標準人形骨骼、模型節點、父節點與必要／選用狀態，提示缺少必要映射。切換分頁保留動畫狀態。
+- **簡化擴充架構**：移除自訂 Plugin 與外部擴充入口；系統資訊與快取操作仍在設定頁，既有資料保留。
+- **精簡系統資訊**：移除 Portable 路徑顯示，改顯示應用版本與 WebView2 執行環境模式。
+- **開發啟動修正**：統一本機前端連線位址；新增文字完整支援繁中與英文。
+
+骨骼檢視為唯讀映射資訊，不代表蒙皮、階層或姿勢已完整驗證。此次未新增模型快照縮圖或其他模型格式轉換。[完整 v1.2 更新說明](docs/v1.2-release-notes.md)
 
 ## v1.1 修正
 
@@ -85,8 +96,6 @@ powershell -File scripts/build.ps1
 
 若只需 UI 檢視，可以使用 `npm run dev`；瀏覽器模式不提供 Portable 檔案存取或設定保存。
 
-
-
 ## 專案結構
 
 | 路徑             | 用途                                             |
@@ -106,6 +115,8 @@ powershell -File scripts/build.ps1
 Third-party licenses, source availability and screenshot attribution are documented in [Licensing](docs/licensing.md). No general open-source license has been selected for original project content.
 
 ## English
+
+v1.2 adds a skeleton overlay and an Animation/Bones tab with raw humanoid mappings and required-bone status. Custom plugin support is removed; settings shows the application version and WebView2 mode. Existing preview, motion and Portable features remain. See [v1.2 release notes](docs/v1.2-release-notes.md).
 
 VRM Explorer is a portable Windows desktop viewer for VRM avatars, VRMA animations and images. Download the **Offline release**, extract it into a writable local folder and run `vrm-explorer.exe`. Fixed WebView2 is included. Original assets are read-only; settings and cache stay in `data/` beside the executable.
 

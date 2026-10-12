@@ -68,10 +68,7 @@ impl PortablePathService {
             "data/cache/metadata",
             "data/logs",
             "data/sessions",
-            "data/plugins",
             "data/webview2",
-            "plugins/builtin",
-            "plugins/external",
         ] {
             service.managed(folder)?;
         }
@@ -188,6 +185,25 @@ mod tests {
         assert!(paths.managed("/absolute").is_err());
         paths.save(&Settings::default()).unwrap();
         assert_eq!(paths.load().unwrap().language, "zh-TW");
+    }
+    #[test]
+    fn removed_plugin_directories_are_not_created_or_deleted() {
+        let temp = tempfile::tempdir().unwrap();
+        PortablePathService::new(temp.path()).unwrap();
+        assert!(!temp.path().join("plugins").exists());
+        assert!(!temp.path().join("data/plugins").exists());
+        for folder in ["plugins/external", "plugins/builtin", "data/plugins"] {
+            let directory = temp.path().join(folder);
+            fs::create_dir_all(&directory).unwrap();
+            fs::write(directory.join("user-file.txt"), b"preserve").unwrap();
+        }
+        PortablePathService::new(temp.path()).unwrap();
+        for folder in ["plugins/external", "plugins/builtin", "data/plugins"] {
+            assert_eq!(
+                fs::read(temp.path().join(folder).join("user-file.txt")).unwrap(),
+                b"preserve"
+            );
+        }
     }
     #[test]
     fn corrupt_config_is_preserved() {

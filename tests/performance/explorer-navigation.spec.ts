@@ -185,6 +185,29 @@ test("direct browse supports folder selection, address input and history without
   await expect(page.locator(".file-list.details")).toBeVisible();
   await page.getByRole("button", { name: "設定", exact: true }).click();
   const settings = page.getByRole("dialog", { name: "設定", exact: true });
+  await expect(
+    settings.getByRole("heading", { name: "系統資訊", exact: true }),
+  ).toBeVisible();
+  await expect(
+    settings.getByText("應用程式版本: 1.2.0", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    settings.getByText("WebView2 模式: 系統安裝的執行環境", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    settings.getByText("Portable 資料位置", { exact: true }),
+  ).toHaveCount(0);
+  await expect(settings.locator("code")).toHaveCount(0);
+  await settings.getByText("縮圖快取", { exact: true }).click();
+  await expect(
+    settings.getByRole("button", { name: "清除快取", exact: true }),
+  ).toBeEnabled();
+  await expect(
+    settings.getByText("外部擴充尚未開放", { exact: true }),
+  ).toHaveCount(0);
+  await expect(
+    settings.getByRole("button", { name: "清除縮圖（內建擴充）", exact: true }),
+  ).toHaveCount(0);
   await settings.getByLabel("檔案大小顯示單位").selectOption("MB");
   await settings.getByRole("combobox", { name: /^佈景/ }).selectOption("dark");
   await settings.getByRole("combobox", { name: /^語言/ }).selectOption("en");

@@ -16,7 +16,7 @@
 5. **驗證誠實**：沒有執行的 Windows、模型格式、環境與效能測試必須標記「未驗證」，不得聲稱通過。
 6. **官方來源核對**：實作前確認 Tauri 2、WebView2 Fixed Version Runtime、Three.js、pixiv three-vrm / three-vrm-animation、相關 Rust Plugin 的最新穩定版本、API、授權與相容性。不得依賴猜測的介面。
 7. **繁體中文優先**：繁體中文（zh-TW）預設；所有應用 UI 字串使用 i18n，不可在元件內硬編碼。
-8. **Plugin 擴充性**：第一版建立受信任內建擴充的介面與註冊機制，**不得**直接載入不可信任第三方 JavaScript、Rust DLL 或允許任意執行碼。
+8. **內建功能**：不提供自訂 Plugin 擴充架構；不得載入外部 JavaScript、Rust DLL 或任意執行碼。
 
 ---
 
@@ -35,7 +35,7 @@
 - Portable 資料保存、搬移後相對路徑復原、遺失路徑重連結。
 - 繁體中文與英文完整翻譯，另外保留日文、簡體中文擴充結構。
 - Light/Dark/System 佈景、鍵盤操作與基本無障礙設計。
-- 安全的內建 Plugin API 基礎。
+- 功能採一般內建模組。
 
 ### 1.2 暫不列入第一版
 
@@ -123,7 +123,7 @@
 ### 3.3 視覺與易用性
 
 - 預設繁體中文、遵守 Windows 鍵盤慣例、良好焦點/選取狀態。
-- Light、Dark、Follow System；設計 Token 化，方便 Plugin panel 沿用。
+- Light、Dark、Follow System；設計 Token 化。
 - 針對高 DPI、125%/150%/200% Windows 縮放與窄視窗實測。
 - 初次開啟提供簡明空狀態與「開啟資料夾」、「開啟 VRM」、「選擇 VRMA」動作。
 - 不把資料夾掃描或縮圖處理放在 React 主要執行緒阻塞 UI。
@@ -146,6 +146,7 @@
 - 支援 VRM 0.x、VRM 1.0，使用 three-vrm loader；錯誤時友善提示，避免空白畫面。
 - 提供旋轉、平移、縮放、重置、自動置中/取景、正背左右視角。
 - 地面格線、座標軸、背景色、基本燈光可切換。
+- 骨骼檢視增補：預覽區以勾選切換骨骼疊加（預設關閉）；動畫區共用原位置，以動畫／骨骼分頁顯示原始人形骨骼對應、父節點與必要骨骼缺漏，不改原素材。
 - Metadata：檔名、VRM 版本、模型名稱、作者、描述、授權/使用限制（原檔有提供時）、檔案大小、骨骼/mesh/材質/三角形數量（可計算時）；未提供需如實標示。
 - VRM Meta 的授權描述應忠實呈現，不假設所有模型均允許商用/二次散布。
 - renderer 單例生命週期管理；模型更換後清理 geometry、material、texture、mixer、event handlers 與 GPU 資源；處理快速切換的競態與取消。
@@ -196,7 +197,7 @@
 1. `VRMExplorer-Portable-Offline-win-x64.zip`：包含可執行主程式與經確認可合法再散布、可在無網路環境使用的必要 WebView2 Fixed Version runtime 或官方等效解決方案。**此為最高優先級驗收目標。**
 2. `VRMExplorer-Portable-Standard-win-x64.zip`：較小，依賴目標電腦已安裝相容的 WebView2 Runtime；不可宣稱在沒有該 runtime 時仍可使用。
 
-這兩個版本共用相同程式碼、資料格式與 Plugin API；並附版本、SHA-256 與操作說明。Installer（MSI/NSIS）不是第一版交付物。
+這兩個版本共用相同程式碼、資料格式；並附版本、SHA-256 與操作說明。Installer（MSI/NSIS）不是第一版交付物。
 
 **重要：**「Portable」指不需安裝本應用程式，不等於 Windows 沒有任何既有執行環境相依。不可把一般 Tauri build 直接單獨複製成 EXE 就宣稱完整 Portable。Fixed Version WebView2、User Data Folder、啟動順序與授權必須實際驗證。若指定 Tauri 版本無法滿足真正離線免安裝目標，需提出可行的官方支援方案並明確列出阻礙，**不可假完成**。
 
@@ -212,20 +213,17 @@ VRMExplorer-Portable/
 │   ├── cache/metadata/
 │   ├── logs/
 │   ├── sessions/
-│   └── plugins/
-├── plugins/
-│   ├── builtin/
-│   └── external/          # 保留目錄；第一版不執行不可信任 Plugin
+│   └── webview2/
 ├── locales/               # 若編譯入應用資產，請記錄其實際儲存方式
 └── runtime/webview2/      # Offline 版本使用；實際子目錄依官方打包方案
 ```
 
-實際可包含 Tauri sidecars/DLL 等必要檔案。`data/`、`plugins/external/` 須被視為使用者資料，升級時不得覆寫。內建 Plugin 與語言資產可採編譯封裝或受控檔案，但應說明發行方式。
+實際可包含 Tauri sidecars/DLL 等必要檔案。`data/`、`plugins/external/` 須被視為使用者資料，升級時不得覆寫。語言資產採編譯封裝。既有 Plugin 目錄僅保留使用者資料，不再建立或使用。
 
 ### 6.3 PortablePathService
 
 - 從**執行檔實際位置**而非 Current Working Directory 定位 Portable Root。
-- Rust 統一管理設定、DB、快取、log、plugin data 路徑；前端不得硬編 AppData 或 OS-specific path。
+- Rust 統一管理設定、DB、快取、log 路徑；前端不得硬編 AppData 或 OS-specific path。
 - 檔案可放於同資料夾、USB 磁碟或外部磁碟；路徑模型需有 `pathKind`（如 portableRelative/externalAbsolute）、`sourceId`、可重定位資訊。
 - 當磁碟代號由 D: 改 E:，Portable 內資料用相對路徑自動復原；外部素材若無法定位則保留記錄、標記 Missing 並讓使用者重新連結。
 - 實際防止符號連結、Junction、Path Traversal 超出授權範圍；相對路徑不代表可以繞過 ACL。
@@ -253,36 +251,21 @@ VRMExplorer-Portable/
 
 - 使用 `i18next` + `react-i18next`。
 - **zh-TW 預設、en 完整支援**；`ja`、`zh-CN` 保留擴充設計，未翻譯文字明確 fallback `en`，不要假裝完整翻譯。
-- UI 字串皆以 keys 管理，包含錯誤、Tooltip、對話框、Plugin、播放狀態。
+- UI 字串皆以 keys 管理，包含錯誤、Tooltip、對話框、播放狀態。
 - 支援執行時切換語言，無需重新啟動；設定保存在 `data/settings/`。
-- 使用命名空間 `common`, `explorer`, `preview`, `animation`, `library`, `settings`, `plugins`, `errors`。
+- 使用命名空間 `common`, `explorer`, `preview`, `animation`, `library`, `settings`, `errors`。
 - 日期、檔案大小、數字以 locale 格式化，使用合宜的複數與變數插值。
 - Theme：Light/Dark/System、設計 tokens、面板分隔尺寸持久保存。
-- Plugin 翻譯需支援 namespace，避免覆寫核心翻譯鍵。
 
 ---
 
-## 8. Plugin 擴充架構與安全
+## 8. 擴充功能政策（依使用者要求修訂）
 
-### 8.1 第一版目標
-
-建立**內建且經編譯/信任**的 Plugin Registry、Manifest、介面、生命週期與至少一個測試用內建 Plugin。未來擴充新預覽器、Metadata Provider、右鍵命令與資訊面板時不需大量改動核心。
-
-### 8.2 介面與類型
-
-- `PluginManifest`: `id`, `name`, `version`, `apiVersion`, `minAppVersion`, `description`, `author`, `capabilities`, `supportedExtensions`, `localizationNamespaces`, `entry`（可選，依部署模式）。
-- `PluginContext`：受控制的服務、logger、i18n、註冊 hook。
-- `PluginLifecycle`: discover / validate / activate / deactivate / dispose。
-- `PreviewProvider`, `MetadataProvider`, `AnimationProvider`, `CommandContribution`, `PanelContribution`, `ExportProvider`。
-- 插件 API 做 SemVer/能力檢查，明確規範錯誤隔離。
-
-### 8.3 安全邊界
-
-- 不可信任 Plugin 不可直接載入主 WebView、Rust 同進程動態函式庫或任意 Node.js/runtime 程式碼。
-- Manifest 的 capability 欄位**不是沙箱**，不等於真的授權隔離。
-- 未來若支援外部 Plugin，必須先評估隔離 host/process、IPC、文件簽章或信任模式、使用者權限提示、檔案存取 broker、資源限制與更新相容策略。
-- 第一版 `plugins/external/` 可存在但預設不載入/不執行；UI 明確標示此功能尚未開放。
-- 不使用 `eval` 或動態執行未簽署的不可信任遠端程式碼。
+- 不提供自訂 Plugin Registry、Manifest、生命週期、API、範例或安裝入口；功能由一般內建模組實作。
+- 系統資訊與縮圖快取管理為一般設定功能。
+- 不再建立 Plugin 專用目錄；既有 plugins/ 與 data/plugins/ 為使用者資料，不刪除、不執行、不封裝。
+- Rust 統一管理檔案存取；不載入外部 JavaScript、DLL Plugin、eval 或遠端執行碼。
+- Tauri 與 pixiv loader 的官方相依機制保留，避免影響檔案選擇、VRM、VRMA。
 
 ---
 
@@ -315,8 +298,7 @@ vrm-explorer/
 │   │   ├── animation-player/
 │   │   ├── animation-library/
 │   │   ├── image-preview/
-│   │   ├── settings/
-│   │   └── plugins/
+│   │   └── settings/
 │   ├── core/{interfaces,services,types,events}/
 │   ├── stores/
 │   ├── hooks/
@@ -329,7 +311,6 @@ vrm-explorer/
 │   │   ├── filesystem/
 │   │   ├── indexing/
 │   │   ├── portable/
-│   │   ├── plugins/
 │   │   └── security/
 │   ├── capabilities/
 │   └── tauri.conf.json
@@ -339,7 +320,7 @@ vrm-explorer/
     ├── requirements.md
     ├── architecture.md
     ├── portable-design.md
-    ├── plugin-api.md
+    ├── plugin-api.md         # 舊 API 移除說明
     ├── development.md
     ├── testing.md
     ├── release.md
@@ -360,7 +341,7 @@ vrm-explorer/
 - 建立三欄 Layout Skeleton、Splitter、Light/Dark/System、繁中/英文切換。
 - 建立 `PortablePathService`、Portable Root 偵測、`data/` 可寫性檢測。
 - 完成 WebView2 Standard/Offline 技術可行性評估與實作計畫；能做到的部分即刻驗證，不可在未測試時宣稱 Offline 完成。
-- 建立內建 Plugin API Interface（不執行外部 Plugin）。
+- 建立內建功能模組（不執行外部 Plugin）。
 - 建立 `docs/` 文件與 `AGENTS.md`。
 
 **驗收**：Windows 開發版可啟動、語言/佈景切換正常、設定寫入執行檔鄰近的 Portable 測試目錄；對於 WebView2 Offline 的阻礙與測試環境有明確報告。
@@ -385,10 +366,10 @@ vrm-explorer/
 **交付**：SQLite + migration、多來源資料夾、背景索引、收藏、最近使用、搜尋、失效路徑重連結。  
 **驗收**：重啟/搬移 Portable 根目錄後設定與收藏保留；外部來源換磁碟代號可手動重新定位。
 
-### Phase 5 — 效能、快取與 Plugin 基礎
+### Phase 5 — 效能與快取
 
-**交付**：圖片/VRM 縮圖快取、虛擬化列表、背景工作併發限制、內建 Plugin Registry、Plugin API 文件、至少一個受信任範例 Plugin。  
-**驗收**：大量檔案仍可互動、快取可清除、擴充功能經註冊能運作、外部不可信程式碼不會被執行。
+**交付**：圖片/VRM 縮圖快取、虛擬化列表、背景工作併發限制。
+**驗收**：大量檔案仍可互動、快取可清除、核心功能正常、外部不可信程式碼不會被執行。
 
 ### Phase 6 — QA 與 Portable 正式發行
 
@@ -434,7 +415,7 @@ vrm-explorer/
 - 不強制訂定尚未量測的毫秒級效能承諾；完成第一版後建立效能基準，記錄大資料夾、模型載入與反覆切換測試數據。
 - TypeScript strict、Rust Clippy/Format、適當的 Lint、單元與整合測試。
 - 核心服務採可測試介面，避免 `App.tsx` 巨型元件。
-- Plugin API、資料庫 Migration 與 Portable 路徑行為有文件及測試。
+- 資料庫 Migration 與 Portable 路徑行為有文件及測試。
 - 不上傳模型或個人路徑至雲端；本機離線模式不需帳號與外部 API。
 - 對使用者可能具有商業版權的 VRM/VRMA 資產，程式僅作本機唯讀操作，尊重其檔案授權條款。
 
@@ -445,10 +426,10 @@ vrm-explorer/
 - 模型透明背景 PNG 快照與批次截圖。
 - VRMA 動畫影片預覽、動態縮圖、循環短片。
 - 複數 VRM 模型比較、表情/姿勢面板。
-- 額外格式（GLB、FBX、BVH）的解析、骨架轉換與預覽 Plugin。
+- 額外格式（GLB、FBX、BVH）的解析、骨架轉換與預覽模組。
 - 標籤/分類、智慧搜尋與大量素材整理。
 - 匯出模型/動畫預覽影片、批次轉換。
-- 安全隔離的第三方 Plugin Host、授權/簽章/版本相容與 Marketplace。
+- 不規劃第三方 Plugin Host 或 Marketplace。
 - 檔案監控、索引增量更新、可選跨平台發行。
 
 新增功能須先更新需求與 ADR，不得破壞現有 Portable Storage、VRM/VRMA 解耦與安全界線。
@@ -471,7 +452,7 @@ vrm-explorer/
 
 ### 15.1 第一次交給 Codex 的執行指令
 
-> 請閱讀 Repository 根目錄的 `VRM_Explorer_Codex_Development_Spec_Final.md`，將其視為本專案的正式產品與技術規格。先檢查目前 Repository 與 Windows 開發環境，再完成 **Phase 0**：文件、Tauri + React + TypeScript 初始化、三欄可調整 Layout、zh-TW/en i18n、Theme、PortablePathService、Plugin Interfaces 與 Windows 開發啟動。務必核實 Tauri 2 + WebView2 Fixed Version Offline Portable 的官方可行作法，誠實標註未驗證項目。先不要實作 Phase 1–6。完成後提交檔案異動、測試結果、風險及 Phase 1 計畫。
+> 請閱讀 Repository 根目錄的 `VRM_Explorer_Codex_Development_Spec_Final.md`，將其視為本專案的正式產品與技術規格。先檢查目前 Repository 與 Windows 開發環境，再完成 **Phase 0**：文件、Tauri + React + TypeScript 初始化、三欄可調整 Layout、zh-TW/en i18n、Theme、PortablePathService、內建功能模組 與 Windows 開發啟動。務必核實 Tauri 2 + WebView2 Fixed Version Offline Portable 的官方可行作法，誠實標註未驗證項目。先不要實作 Phase 1–6。完成後提交檔案異動、測試結果、風險及 Phase 1 計畫。
 
 ---
 
@@ -485,6 +466,6 @@ vrm-explorer/
 4. 管理多個 VRMA 來源，搜尋、收藏及重複使用。
 5. 關閉、重新啟動甚至搬移 Portable 資料夾後保留設定、索引與收藏。
 6. 安全地預覽原始素材，不造成原始檔案異動。
-7. 保留可靠的 i18n 與 Plugin 擴充接口，後續可迭代升級。
+7. 保留可靠的 i18n 與內建功能模組，後續可迭代升級。
 
 **以上須以真實 Windows 執行與測試證據確認，而不是僅靠編譯成功判定。**
