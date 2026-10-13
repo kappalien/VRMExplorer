@@ -1,11 +1,25 @@
 import { invoke } from "@tauri-apps/api/core";
 import { WorkQueue } from "./work-queue";
 const thumbnailQueue = new WorkQueue(2);
-export async function thumbnailUrl(path: string, signal: AbortSignal) {
-  const result = await thumbnailQueue.run(
-    () => invoke<ArrayBuffer | number[]>("read_thumbnail", { path }),
-    signal,
-  );
+export async function thumbnailUrl(
+  path: string,
+  signal: AbortSignal,
+  vrm = false,
+  onSnapshot?: () => void,
+) {
+  let result: ArrayBuffer | number[];
+  try {
+    result = await thumbnailQueue.run(
+      () => invoke<ArrayBuffer | number[]>("read_thumbnail", { path }),
+      signal,
+    );
+  } catch (error) {
+    if (!vrm || signal.aborted || String(error) !== "errors:noThumbnail")
+      throw error;
+    onSnapshot?.();
+    const { snapshotBytes } = await import("./vrm-snapshot");
+    result = await snapshotBytes(path, signal);
+  }
   if (signal.aborted) throw new DOMException("Cancelled", "AbortError");
   return URL.createObjectURL(
     new Blob(

@@ -134,25 +134,46 @@ export function ExplorerToolbar() {
   );
 }
 function Thumbnail({ entry }: { entry: AssetEntry }) {
-  const [url, setUrl] = useState("");
+  const { t } = useTranslation();
+  const key = `${entry.path}:${entry.size}:${entry.modified}`;
+  const [result, setResult] = useState({
+    key: "",
+    url: "",
+    snapshot: false,
+    failed: false,
+  });
+  const url = result.key === key ? result.url : "";
+  const snapshot = result.key === key && result.snapshot;
   useEffect(() => {
     if (!images.includes(entry.kind) && entry.kind !== "vrm") return;
     const controller = new AbortController();
     let alive = true;
+    let queued = false;
     let objectUrl = "";
-    void thumbnailUrl(entry.path, controller.signal)
+    void thumbnailUrl(
+      entry.path,
+      controller.signal,
+      entry.kind === "vrm",
+      () => {
+        queued = true;
+        if (alive) setResult({ key, url: "", snapshot: true, failed: false });
+      },
+    )
       .then((u) => {
         objectUrl = u;
-        if (alive) setUrl(u);
-        else URL.revokeObjectURL(u);
+        if (alive) {
+          setResult({ key, url: u, snapshot: false, failed: false });
+        } else URL.revokeObjectURL(u);
       })
-      .catch(() => {});
+      .catch(() => {
+        if (alive) setResult({ key, url: "", snapshot: false, failed: queued });
+      });
     return () => {
       alive = false;
       controller.abort();
       if (objectUrl) URL.revokeObjectURL(objectUrl);
     };
-  }, [entry.path, entry.kind, entry.size, entry.modified]);
+  }, [entry.path, entry.kind, entry.size, entry.modified, key]);
   return url ? (
     <img src={url} alt="" />
   ) : entry.kind === "folder" ? (
@@ -160,7 +181,18 @@ function Thumbnail({ entry }: { entry: AssetEntry }) {
   ) : images.includes(entry.kind) ? (
     <FileImage />
   ) : (
-    <File />
+    <span
+      title={
+        snapshot
+          ? t("explorer:headThumbnailPending")
+          : result.key === key && result.failed
+            ? t("explorer:headThumbnailUnavailable")
+            : undefined
+      }
+      aria-busy={snapshot}
+    >
+      <File />
+    </span>
   );
 }
 export function ExplorerFiles() {

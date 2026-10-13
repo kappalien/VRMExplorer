@@ -1,4 +1,4 @@
 {
-  "zh": "檔案清單與骨骼表格隨視窗高度填滿面板。新增視窗大小及最大化狀態記憶，下次啟動自動還原。本次只下載程式更新包，不重複下載 WebView2；個人資料保持完整。",
-  "en": "File lists and bone tables fill the panel height. Remembers and restores the normal window size and maximized state. This update downloads only the app package, excludes unchanged WebView2 and preserves personal data."
+  "zh": "VRM 優先顯示內嵌封面；沒有封面時，在背景逐一產生頭部縮圖並快取。再次瀏覽直接使用快取，主預覽載入時暫停背景渲染。",
+  "en": "VRM thumbnails prefer embedded covers. Models without a cover receive a cached head portrait generated sequentially in the background. Cached portraits are reused, and background rendering pauses while the main preview loads."
 }

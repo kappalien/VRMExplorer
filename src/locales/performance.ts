@@ -6,7 +6,7 @@ export const zhPerformance = {
     apply: "套用",
     clearCache: "清除快取",
     cacheDescription:
-      "儲存在程式旁 data/cache/thumbnails；超出上限先移除最早建立的快取。圖片及 VRM 內嵌封面可重建，原始素材不受影響。",
+      "儲存在程式旁 data/cache/thumbnails；超出上限先移除最早建立的快取。圖片、VRM 內嵌封面與背景頭部快照可重建，原始素材不受影響。",
   },
   errors: {
     cacheConfig:
@@ -23,7 +23,7 @@ export const enPerformance = {
     apply: "Apply",
     clearCache: "Clear cache",
     cacheDescription:
-      "Stored beside the app in data/cache/thumbnails. Oldest generated entries are evicted first. Images and embedded VRM covers can be rebuilt; original assets are preserved.",
+      "Stored beside the app in data/cache/thumbnails. Oldest generated entries are evicted first. Images, embedded VRM covers and background head snapshots can be rebuilt; original assets are preserved.",
   },
   errors: {
     cacheConfig:

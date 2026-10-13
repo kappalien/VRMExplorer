@@ -2,11 +2,13 @@ use crate::{
     filesystem::{display, io_error, FsResult, FsState},
     portable::PortablePathService,
 };
+use base64::{engine::general_purpose::STANDARD, Engine};
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
+use std::borrow::Cow;
 use std::{
     fs,
-    io::{Cursor, Write},
+    io::{Cursor, Read, Write},
     path::Path,
     sync::{
         atomic::{AtomicU64, AtomicUsize, Ordering},
@@ -112,6 +114,10 @@ impl ThumbnailService {
             self.check(epoch)?;
             return Ok(bytes);
         }
+        if vrm {
+            let b = broker.lock().map_err(|_| "errors:storageBusy")?;
+            missing_cover_header(&b.resolve(path)?)?;
+        }
         let raw = broker.lock().map_err(|_| "errors:storageBusy")?.read(
             path,
             if vrm {
@@ -122,7 +128,7 @@ impl ThumbnailService {
         )?;
         self.check(epoch)?;
         let encoded = if vrm {
-            encode_preview(embedded_vrm_image(&raw)?, 192)?
+            encode_preview(&embedded_vrm_image(&raw)?, 192)?
         } else {
             encode_preview(&raw, 192)?
         };
@@ -143,6 +149,189 @@ impl ThumbnailService {
         Ok(encoded)
     }
 }
+// Read only the bounded GLB JSON before loading a large model with no cover.
+fn missing_cover_header(path: &Path) -> FsResult<()> {
+    let mut file = fs::File::open(path).map_err(io_error)?;
+    let len = file.metadata().map_err(io_error)?.len();
+    if !(20..=256 * 1024 * 1024).contains(&len) {
+        return Err("errors:tooLarge".into());
+    }
+    let mut header = [0u8; 20];
+    file.read_exact(&mut header).map_err(io_error)?;
+    if &header[..4] != b"glTF"
+        || u32_at(&header, 4)? != 2
+        || u32_at(&header, 8)? as u64 != len
+        || u32_at(&header, 16)? != 0x4e4f534a
+    {
+        return Err("errors:container".into());
+    }
+    let json_len = u32_at(&header, 12)?;
+    if json_len > 16 * 1024 * 1024 || json_len % 4 != 0 || json_len as u64 + 20 > len {
+        return Err("errors:container".into());
+    }
+    let mut bytes = vec![0; json_len];
+    file.read_exact(&mut bytes).map_err(io_error)?;
+    let json: serde_json::Value = serde_json::from_slice(&bytes).map_err(|_| "errors:container")?;
+    let vrm0 = json.pointer("/extensions/VRM");
+    let vrm1 = json.pointer("/extensions/VRMC_vrm");
+    if vrm0.is_none() && vrm1.is_none() {
+        return Err("errors:container".into());
+    }
+    let image = cover_image(&json).ok_or("errors:noThumbnail")?;
+    if let Some(uri) = image.get("uri").and_then(|v| v.as_str()) {
+        if inline_image_payload(uri).is_none() {
+            return Err("errors:noThumbnail".into());
+        }
+    } else if image.get("bufferView").and_then(|v| v.as_u64()).is_none() {
+        return Err("errors:noThumbnail".into());
+    }
+
+    Ok(())
+}
+#[derive(Serialize, Deserialize)]
+#[serde(rename_all = "camelCase", deny_unknown_fields)]
+pub struct SnapshotTicket {
+    key: String,
+    epoch: u64,
+}
+fn snapshot_source(path: &str, broker: &FsState) -> FsResult<String> {
+    let b = broker.lock().map_err(|_| "errors:storageBusy")?;
+    let canonical = b.resolve(path)?;
+    if canonical
+        .extension()
+        .and_then(|s| s.to_str())
+        .is_none_or(|s| !s.eq_ignore_ascii_case("vrm"))
+    {
+        return Err("errors:unsupported".into());
+    }
+    let metadata = canonical.metadata().map_err(io_error)?;
+    if !metadata.is_file() {
+        return Err("errors:unsupported".into());
+    }
+    // Snapshot writes are never allowed to replace a valid embedded cover.
+    match missing_cover_header(&canonical) {
+        Err(e) if e == "errors:noThumbnail" => Ok(cache_key(&canonical, &metadata)),
+        Err(e) => Err(e),
+        Ok(()) => Err("errors:cancelled".into()),
+    }
+}
+#[tauri::command]
+pub async fn snapshot_ticket(
+    path: String,
+    state: State<'_, FsState>,
+    cache: State<'_, CacheState>,
+) -> FsResult<SnapshotTicket> {
+    let broker = state.inner().clone();
+    let cache = cache.inner().clone();
+    tauri::async_runtime::spawn_blocking(move || {
+        let epoch = cache.epoch.load(Ordering::SeqCst);
+        let key = snapshot_source(&path, &broker)?;
+        cache.check(epoch)?;
+        Ok(SnapshotTicket { key, epoch })
+    })
+    .await
+    .map_err(|_| "errors:image")?
+}
+#[tauri::command]
+pub async fn read_snapshot_model(
+    path: String,
+    ticket: SnapshotTicket,
+    state: State<'_, FsState>,
+    cache: State<'_, CacheState>,
+) -> FsResult<tauri::ipc::Response> {
+    let broker = state.inner().clone();
+    let cache = cache.inner().clone();
+    let permit = reserve(&cache)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let _permit = permit;
+        cache.check(ticket.epoch)?;
+        if snapshot_source(&path, &broker)? != ticket.key {
+            return Err("errors:cancelled".into());
+        }
+        let canonical = broker
+            .lock()
+            .map_err(|_| "errors:storageBusy")?
+            .resolve(&path)?;
+        // The grant mutex is not held during model I/O, so navigation stays responsive.
+        let mut file = fs::File::open(canonical).map_err(io_error)?;
+        let mut bytes = Vec::new();
+        let mut chunk = [0u8; 64 * 1024];
+        loop {
+            cache.check(ticket.epoch)?;
+            let n = file.read(&mut chunk).map_err(io_error)?;
+            if n == 0 {
+                break;
+            }
+            if bytes.len() + n > 256 * 1024 * 1024 {
+                return Err("errors:tooLarge".into());
+            }
+            bytes.extend_from_slice(&chunk[..n]);
+        }
+        cache.check(ticket.epoch)?;
+        if snapshot_source(&path, &broker)? != ticket.key {
+            return Err("errors:cancelled".into());
+        }
+        Ok(tauri::ipc::Response::new(bytes))
+    })
+    .await
+    .map_err(|_| "errors:image")?
+}
+#[tauri::command]
+pub async fn save_snapshot(
+    path: String,
+    ticket: SnapshotTicket,
+    png: Vec<u8>,
+    state: State<'_, FsState>,
+    cache: State<'_, CacheState>,
+) -> FsResult<tauri::ipc::Response> {
+    let broker = state.inner().clone();
+    let cache = cache.inner().clone();
+    let permit = reserve(&cache)?;
+    tauri::async_runtime::spawn_blocking(move || {
+        let _permit = permit;
+        save_snapshot_bytes(&cache, &path, &ticket, &png, &broker).map(tauri::ipc::Response::new)
+    })
+    .await
+    .map_err(|_| "errors:image")?
+}
+fn save_snapshot_bytes(
+    cache: &ThumbnailService,
+    path: &str,
+    ticket: &SnapshotTicket,
+    png: &[u8],
+    broker: &FsState,
+) -> FsResult<Vec<u8>> {
+    cache.check(ticket.epoch)?;
+    if png.is_empty() || png.len() as u64 > MAX_ENTRY {
+        return Err("errors:tooLarge".into());
+    }
+    if snapshot_source(path, broker)? != ticket.key {
+        return Err("errors:cancelled".into());
+    }
+    let mut reader = image::ImageReader::with_format(Cursor::new(png), image::ImageFormat::Png);
+    let mut limits = image::Limits::default();
+    limits.max_image_width = Some(192);
+    limits.max_image_height = Some(192);
+    limits.max_alloc = Some(MAX_ENTRY);
+    reader.limits(limits);
+    let decoded = reader.decode().map_err(|_| "errors:image")?;
+    if decoded.width() != 192 || decoded.height() != 192 {
+        return Err("errors:image".into());
+    }
+    let mut out = Cursor::new(Vec::new());
+    decoded
+        .write_to(&mut out, image::ImageFormat::Png)
+        .map_err(|_| "errors:image")?;
+    let bytes = out.into_inner();
+    let mut store = cache.store.lock().map_err(|_| "errors:storageBusy")?;
+    cache.check(ticket.epoch)?;
+    if snapshot_source(path, broker)? != ticket.key {
+        return Err("errors:cancelled".into());
+    }
+    store.put(&ticket.key, &bytes)?;
+    Ok(bytes)
+}
+
 pub struct JobPermit(CacheState);
 impl Drop for JobPermit {
     fn drop(&mut self) {
@@ -296,9 +485,33 @@ fn u32_at(bytes: &[u8], offset: usize) -> FsResult<usize> {
     let data = bytes.get(offset..offset + 4).ok_or("errors:container")?;
     Ok(u32::from_le_bytes(data.try_into().map_err(|_| "errors:container")?) as usize)
 }
+fn cover_image(json: &serde_json::Value) -> Option<&serde_json::Value> {
+    let index = json
+        .pointer("/extensions/VRMC_vrm/meta/thumbnailImage")
+        .and_then(|v| v.as_u64())
+        .or_else(|| {
+            let texture = json.pointer("/extensions/VRM/meta/texture")?.as_u64()?;
+            json.get("textures")?
+                .get(usize::try_from(texture).ok()?)?
+                .get("source")?
+                .as_u64()
+        })?;
+    json.get("images")?.get(usize::try_from(index).ok()?)
+}
+fn inline_image_payload(uri: &str) -> Option<&str> {
+    [
+        "data:image/png;base64,",
+        "data:image/jpeg;base64,",
+        "data:image/jpg;base64,",
+        "data:image/webp;base64,",
+        "data:image/bmp;base64,",
+    ]
+    .iter()
+    .find_map(|prefix| uri.strip_prefix(prefix))
+}
 // VRM 0.x: meta.texture -> textures[].source. VRM 1.0: meta.thumbnailImage -> images[].
-// Only a bounded GLB BIN bufferView is accepted. No external URI is read.
-fn embedded_vrm_image(bytes: &[u8]) -> FsResult<&[u8]> {
+// Accept bounded GLB BIN bufferViews or inline base64 images; never fetch external URIs.
+fn embedded_vrm_image(bytes: &[u8]) -> FsResult<Cow<'_, [u8]>> {
     if bytes.get(..4) != Some(b"glTF")
         || u32_at(bytes, 4)? != 2
         || u32_at(bytes, 8)? != bytes.len()
@@ -313,6 +526,18 @@ fn embedded_vrm_image(bytes: &[u8]) -> FsResult<&[u8]> {
     let json: serde_json::Value =
         serde_json::from_slice(bytes.get(20..20 + json_len).ok_or("errors:container")?)
             .map_err(|_| "errors:container")?;
+    let image = cover_image(&json).ok_or("errors:noThumbnail")?;
+    if let Some(uri) = image.get("uri").and_then(|v| v.as_str()) {
+        let payload = inline_image_payload(uri).ok_or("errors:noThumbnail")?;
+        if payload.len() > 44 * 1024 * 1024 {
+            return Err("errors:tooLarge".into());
+        }
+        let decoded = STANDARD.decode(payload).map_err(|_| "errors:image")?;
+        if decoded.len() > 32 * 1024 * 1024 {
+            return Err("errors:tooLarge".into());
+        }
+        return Ok(Cow::Owned(decoded));
+    }
     let bin_offset = 20 + json_len;
     if u32_at(bytes, bin_offset + 4)? != 0x004e4942 {
         return Err("errors:container".into());
@@ -321,29 +546,6 @@ fn embedded_vrm_image(bytes: &[u8]) -> FsResult<&[u8]> {
     let bin = bytes
         .get(bin_offset + 8..bin_offset + 8 + bin_len)
         .ok_or("errors:container")?;
-    let image_index = if let Some(index) = json
-        .pointer("/extensions/VRMC_vrm/meta/thumbnailImage")
-        .and_then(|v| v.as_u64())
-    {
-        index
-    } else {
-        let texture = json
-            .pointer("/extensions/VRM/meta/texture")
-            .and_then(|v| v.as_u64())
-            .ok_or("errors:noThumbnail")?;
-        json.get("textures")
-            .and_then(|v| v.get(usize::try_from(texture).ok()?))
-            .and_then(|v| v.get("source"))
-            .and_then(|v| v.as_u64())
-            .ok_or("errors:noThumbnail")?
-    };
-    let image = json
-        .get("images")
-        .and_then(|v| v.get(usize::try_from(image_index).ok()?))
-        .ok_or("errors:noThumbnail")?;
-    if image.get("uri").is_some() {
-        return Err("errors:noThumbnail".into());
-    }
     let view_index = image
         .get("bufferView")
         .and_then(|v| v.as_u64())
@@ -377,6 +579,7 @@ fn embedded_vrm_image(bytes: &[u8]) -> FsResult<&[u8]> {
         usize::try_from(offset).map_err(|_| "errors:container")?
             ..usize::try_from(end).map_err(|_| "errors:container")?,
     )
+    .map(Cow::Borrowed)
     .ok_or_else(|| "errors:container".into())
 }
 #[tauri::command]
@@ -548,6 +751,116 @@ mod tests {
         data.extend_from_slice(&0x004e4942u32.to_le_bytes());
         data.extend(bin);
         data
+    }
+    #[test]
+    fn head_snapshot_cache_revalidates_source_permissions_epoch_and_cover_priority() {
+        let temp = tempfile::tempdir().unwrap();
+        let paths = PortablePathService::for_test(temp.path()).unwrap();
+        let source = temp.path().join("head.vrm");
+        let no_cover = glb(
+            serde_json::json!({"asset":{"version":"2.0"},"extensions":{"VRM":{"meta":{}}}}),
+            &[0; 4],
+        );
+        fs::write(&source, &no_cover).unwrap();
+        let mut broker = Broker::default();
+        broker.grant(&source).unwrap();
+        let broker = Arc::new(Mutex::new(broker));
+        let cache = ThumbnailService::new(&paths).unwrap();
+        let path = display(&source);
+        assert_eq!(
+            cache.thumbnail(&path, &broker, 0).unwrap_err(),
+            "errors:noThumbnail"
+        );
+        let ticket = SnapshotTicket {
+            key: snapshot_source(&path, &broker).unwrap(),
+            epoch: 0,
+        };
+        let image = image::DynamicImage::new_rgba8(192, 192);
+        let mut cursor = Cursor::new(Vec::new());
+        image
+            .write_to(&mut cursor, image::ImageFormat::Png)
+            .unwrap();
+        let png = cursor.into_inner();
+        let saved = save_snapshot_bytes(&cache, &path, &ticket, &png, &broker).unwrap();
+        assert_eq!(cache.thumbnail(&path, &broker, 0).unwrap(), saved);
+        assert_eq!(fs::read(&source).unwrap(), no_cover);
+        assert!(save_snapshot_bytes(
+            &cache,
+            &path,
+            &ticket,
+            &super::tests::png(192, 100),
+            &broker
+        )
+        .is_err());
+        assert!(save_snapshot_bytes(
+            &cache,
+            &path,
+            &ticket,
+            &vec![0; MAX_ENTRY as usize + 1],
+            &broker
+        )
+        .is_err());
+        let changed = glb(
+            serde_json::json!({"asset":{"version":"2.0"},"extensions":{"VRM":{"meta":{"name":"changed"}}}}),
+            &[0; 4],
+        );
+        fs::write(&source, &changed).unwrap();
+        assert_eq!(
+            save_snapshot_bytes(&cache, &path, &ticket, &png, &broker).unwrap_err(),
+            "errors:cancelled"
+        );
+        let updated = SnapshotTicket {
+            key: snapshot_source(&path, &broker).unwrap(),
+            epoch: 0,
+        };
+        cache.epoch.fetch_add(1, Ordering::SeqCst);
+        cache.store.lock().unwrap().trim(0).unwrap();
+        assert_eq!(
+            save_snapshot_bytes(&cache, &path, &updated, &png, &broker).unwrap_err(),
+            "errors:cancelled"
+        );
+        assert_eq!(cache.store.lock().unwrap().info().unwrap().entries, 0);
+        *broker.lock().unwrap() = Broker::default();
+        assert_eq!(
+            snapshot_source(&path, &broker).unwrap_err(),
+            "errors:unauthorized"
+        );
+        broker.lock().unwrap().grant(&source).unwrap();
+        let cover = super::tests::png(24, 100);
+        let with_cover = glb(
+            serde_json::json!({"asset":{"version":"2.0"},"extensions":{"VRMC_vrm":{"meta":{"thumbnailImage":0}}},"buffers":[{"byteLength":cover.len()}],"bufferViews":[{"buffer":0,"byteLength":cover.len()}],"images":[{"bufferView":0}]}),
+            &cover,
+        );
+        fs::write(&source, &with_cover).unwrap();
+        assert_eq!(
+            snapshot_source(&path, &broker).unwrap_err(),
+            "errors:cancelled"
+        );
+        assert_eq!(
+            cache.thumbnail(&path, &broker, 1).unwrap(),
+            encode_preview(&cover, 192).unwrap()
+        );
+        assert_eq!(fs::read(source).unwrap(), with_cover);
+    }
+    #[test]
+    fn inline_cover_and_invalid_cover_reference() {
+        let image = png(24, 100);
+        let json = serde_json::json!({"asset":{"version":"2.0"},"extensions":{"VRMC_vrm":{"meta":{"thumbnailImage":0}}},"images":[{"uri":format!("data:image/png;base64,{}",STANDARD.encode(&image))}]});
+        let raw = glb(json, &[]);
+        assert_eq!(embedded_vrm_image(&raw).unwrap().as_ref(), image);
+        let temp = tempfile::tempdir().unwrap();
+        let source = temp.path().join("model.vrm");
+        fs::write(&source, &raw).unwrap();
+        assert!(missing_cover_header(&source).is_ok());
+        let broken = glb(
+            serde_json::json!({"asset":{"version":"2.0"},"extensions":{"VRM":{"meta":{"texture":999}}}}),
+            &[0; 4],
+        );
+        fs::write(source.clone(), broken).unwrap();
+        assert_eq!(
+            missing_cover_header(&source).unwrap_err(),
+            "errors:noThumbnail"
+        );
     }
     #[test]
     fn vrm_zero_and_one_embedded_covers_reject_external_and_bad_ranges() {

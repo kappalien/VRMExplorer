@@ -30,6 +30,8 @@ export const zhFeatures = {
     view: "檢視",
     compactView: "精簡顯示",
     thumbnailView: "顯示縮圖",
+    headThumbnailPending: "正在背景建立頭部縮圖…",
+    headThumbnailUnavailable: "無法建立此模型的頭部縮圖，可稍後重新整理再試。",
     list: "清單",
     details: "詳細資訊",
     thumbnails: "縮圖",
@@ -100,6 +102,9 @@ export const enFeatures = {
     view: "View",
     compactView: "Compact view",
     thumbnailView: "Show thumbnails",
+    headThumbnailPending: "Creating head thumbnail in the background…",
+    headThumbnailUnavailable:
+      "Could not create a head thumbnail for this model. Refresh later to retry.",
     list: "List",
     details: "Details",
     thumbnails: "Thumbnails",
