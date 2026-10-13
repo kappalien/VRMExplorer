@@ -51,6 +51,10 @@ for (const mode of ["Offline"]) {
   );
   const licenses = path.join(stage, "licenses");
   fs.mkdirSync(licenses);
+  fs.copyFileSync(
+    path.join(root, "LICENSE"),
+    path.join(licenses, "VRM-Explorer-LICENSE.txt"),
+  );
   if (mode === "Offline") {
     const eula = JSON.parse(
       fs.readFileSync(path.join(root, "build/downloads/webview2-eula.json")),

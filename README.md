@@ -121,9 +121,11 @@ powershell -File scripts/build.ps1
 
 ## 授權與署名 / Licensing
 
-使用或再散布前請閱讀 [授權與素材說明](docs/licensing.md)。第三方授權及著作權聲明見 `licenses/third-party/`，MPL 元件原始碼見 `licenses/mpl-sources.zip`。Microsoft Runtime 與展示模型各有獨立條款。原創專案內容尚未指定開源授權；Public 不代表任意商用或再散布許可。
+原創程式碼、腳本及原創文件採用 [MIT License](LICENSE)，允許使用、修改、再散布及商用，包括出售副本或修改版；須保留著作權與授權文字。軟體按現況提供，不提供保證。此授權亦適用已發布版本的原創內容。
 
-Third-party licenses, source availability and screenshot attribution are documented in [Licensing](docs/licensing.md). No general open-source license has been selected for original project content.
+第三方套件、Microsoft Runtime、展示模型及使用者素材保留各自條款，不因本專案採 MIT 而改變。完整範圍見 [授權與素材說明](docs/licensing.md)。第三方授權及著作權聲明見 `licenses/third-party/`，MPL 元件原始碼見 `licenses/mpl-sources.zip`。
+
+Original project code, scripts and original documentation, including previously published versions, are licensed under [MIT](LICENSE). Use, modification, redistribution and commercial use are permitted; preserve copyright and license notices. Third-party components, Microsoft Runtime and assets retain their own terms. See [Licensing](docs/licensing.md) for scope, source availability and screenshot attribution.
 
 ## English
 

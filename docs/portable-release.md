@@ -47,3 +47,9 @@ Close the app and back up `data/` before upgrading. Extract the package separate
 包內只有 EXE、文件、升級腳本、授權與 Fixed Runtime，不包含 `src`、`data`、VRM／VRMA 或測試資料。`licenses/dependencies.json` 保守列出鎖定依賴，包含跨平台／build dependencies，不代表每個 crate 都連入 Windows EXE。使用者模型的再散布權不由本程式授權。
 
 See `v1.1-tests.md` for executed tests and remaining Not Tested items. Licenses and notices are in `licenses/`.
+
+## 專案授權 / Project license
+
+VRM Explorer 原創內容採用 MIT License，允許使用、修改、再散布與商用；須保留著作權及完整授權文字。後續封裝附於 `licenses/VRM-Explorer-LICENSE.txt`；舊包中的原創內容亦適用目前 [MIT 授權](https://github.com/kappalien/VRMExplorer/blob/main/LICENSE)。第三方套件、Microsoft Runtime 及模型素材保留獨立條款。詳見 [授權範圍](licensing.md)。
+
+Original project content is MIT licensed, including previously published versions. Preserve copyright and license notices. Future packages include `licenses/VRM-Explorer-LICENSE.txt`; older packages are covered by the current MIT grant linked above. Third-party and asset terms remain separate.

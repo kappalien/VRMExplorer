@@ -2,11 +2,17 @@
 
 ## 專案與第三方程式碼
 
-公開倉庫不代表所有內容均可任意再利用。本專案尚未選定對原創程式碼的開源授權；除 GitHub 服務條款允許的瀏覽與 Fork 外，修改、再散布或商用原創內容請先向倉庫擁有者取得許可。此說明不限制第三方元件各自授權所賦予的權利，也不主張第三方內容的所有權。
+VRM Explorer 的原創程式碼、腳本及原創文件採用 [MIT License](https://github.com/kappalien/VRMExplorer/blob/main/LICENSE)，著作權聲明為 `Copyright (c) 2026 kappalien`。任何人均可使用、複製、修改、合併、發布、再散布、再授權及商用，包括出售原創程式的副本或修改版；須在軟體副本或實質部分保留完整著作權與 MIT 授權文字。修改版不必公開原始碼，軟體按現況提供，不提供保證。完整條款以根目錄 `LICENSE` 為準；後續發行包亦附於 `licenses/VRM-Explorer-LICENSE.txt`。
+
+MIT 授權亦適用本倉庫已發布版本中的原創專案內容。舊發行包若仍記載「尚未指定開源授權」或需另行取得原創內容許可，該部分以本聲明及根目錄 MIT License 為準；第三方條款不因此改變。
+
+本授權不涵蓋第三方套件、Microsoft WebView2 Runtime、展示截圖中的第三方模型或使用者自行載入的素材。這些內容保留各自授權，不因本專案採用 MIT 而變為 MIT；本專案不主張第三方內容的所有權。
 
 主要元件包含 React、Three.js、pixiv three-vrm、Tauri、i18next、Zustand、Lucide／Feather、SQLite 及 Rust 相依元件。實際版本與授權見 [依賴清單](../licenses/third-party/dependencies.json)，完整授權及著作權聲明保存在 [licenses/third-party](../licenses/third-party)。清單保守包含建置及跨平台依賴，不代表每項都連入 Windows 執行檔。再散布時須保留相應授權、NOTICE 及著作權文字；多重授權的選擇與 AND 組合以元件原文為準。
 
-Third-party components remain under their own licenses. Preserve their copyright, license and NOTICE texts when redistributing. This repository has not granted a general open-source license for original project content. Nothing here restricts rights granted by third-party licenses.
+Original VRM Explorer code, scripts and original documentation are licensed under MIT, copyright (c) 2026 kappalien. Use, modification, redistribution, sublicensing and commercial use (including selling copies) are permitted, provided the copyright and full license notice are preserved. Modified versions need not publish their source. The software is provided as is, without warranty. See the root LICENSE; future distribution packages also include licenses/VRM-Explorer-LICENSE.txt.
+
+This grant also applies to original project content in previously published versions. It supersedes older statements that no open-source license was selected or that separate permission was required for original content. Third-party components, Microsoft Runtime, third-party screenshot models and user assets retain their own terms. Preserve applicable copyright, license and NOTICE texts. Nothing here restricts rights granted by third-party licenses.
 
 ## MPL-2.0 原始碼 / Source availability
 
