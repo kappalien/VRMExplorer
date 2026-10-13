@@ -11,3 +11,4 @@ The authoritative specification is `VRM_Explorer_Codex_Development_Spec.md` at t
 - Preserve existing user files and data. Never package user data into releases.
 - No agent delegation is required for this project.
 - GitHub releases publish only signed update packages by default. Keep v1.4.1 as the full Portable download; publish another full Portable package only when the user explicitly requests it.
+- Version changelogs and release-specific change descriptions belong on GitHub Release pages only. README contains product overview, downloads, current capabilities and usage guidance; do not add version-history sections.

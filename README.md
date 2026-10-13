@@ -1,4 +1,4 @@
-# VRM Explorer v1.4.2
+# VRM Explorer
 
 Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用及可攜式為優先，原始素材唯讀；繁體中文預設，支援英文介面。
 
@@ -10,7 +10,7 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 
 一般使用者請下載上面的 Offline ZIP。GitHub 的 **Code → Download ZIP** 是原始碼，不能直接啟動。
 
-目前最新版為 **v1.4.2**，僅提供線上更新包。首次使用請下載 **v1.4.1 完整可攜版**，啟動後在「設定 → 線上更新」按「一鍵更新」。1.4.0 與 1.4.1 均可直接升級，不必逐版安裝。之後的版本以更新包發行，完整可攜版下載入口保留 v1.4.1。
+首次使用請下載 **v1.4.1 完整可攜版**，啟動後在「設定 → 線上更新」按「一鍵更新」取得最新版。最新版本、更新紀錄與版本說明請查看 [Release 頁面](https://github.com/kappalien/VRMExplorer/releases)。
 
 目前發行目標為 **Windows 11 x64**。完整解壓後約 688 MiB，主要是隨附 Microsoft Fixed WebView2 Runtime 154.0.4258.62；使用程式不需安裝 Node.js、Rust 或 MSVC。
 
@@ -63,50 +63,6 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 - 不同身形可能產生手掌交叉或穿模；目前不含 IK、碰撞、FBX／BVH／GLB 格式轉換或動畫錄製。
 - `upgrade.ps1` 使用已下載且解壓的新版封裝，不會線上自動更新。
 
-## v1.4.2 更新
-
-- 檔案清單與骨骼對應表隨視窗高度填滿面板，可在放大視窗後看到更多項目。
-- 記住視窗一般大小與最大化狀態，下次啟動自動還原；最小化不覆寫一般大小，還原時依目前螢幕可用範圍調整。
-- 視窗設定存於 Portable data，保留個人資料；本次 WebView2 未變動，只需下載程式更新包。
-- 本版本不提供完整可攜包，首次使用請由 v1.4.1 完整包啟動後在線更新。
-
-[v1.4.2 發行資訊](https://github.com/kappalien/VRMExplorer/releases/tag/v1.4.2)
-
-## v1.4.1 更新
-
-- 設定頁新增一鍵線上更新與可選的啟動後檢查新版。
-- GitHub Release 更新資訊採 Ed25519 簽章，獨立 Rust 更新器負責替換、重新啟動與失敗回復。
-- 程式更新包與 WebView2 Runtime 分開，只有 Runtime 版本改變時額外下載。
-- 保留 Portable data，更新前提醒姿勢草稿；提供下載進度及取消。
-- 修復檢視切換遺漏詳細資訊的問題，切換縮圖及精簡模式後仍能返回檔案大小與修改時間的詳細檢視。
-
-[更新操作及發行說明](docs/v1.4-updates.md)。v1.3 使用者需先用完整可攜包或本機 `upgrade.ps1` 升級一次；v1.4 起可在「設定 → 線上更新」按「一鍵更新」。一般更新包約 7.2 MiB，不重複下載未變動的 WebView2；只有新版提供簽章更新資產時才能更新。
-
-## v1.3 更新
-
-- 新增「自定義姿勢」分頁，與動畫／骨骼區共用位置；介面支援繁中與英文。
-- 分組選擇軀幹、四肢及手指骨骼，使用 XYZ 角度滑桿、數值輸入或 3D 控制點與旋轉環調整。
-- 擷取目前動畫影格、髖部位移、單骨骼／T 姿勢重設、復原／重做；動畫播放後可恢復編輯草稿。
-- 匯出單幀靜態 `.vrma`，可重新載入套用。匯出另存新檔，不覆蓋既有素材；不包含表情、模型或貼圖。
-
-草稿在換模型或關閉程式時清除；不同身形仍可能穿模，此階段不包含碰撞或 IK。[姿勢操作說明](docs/v1.3-pose.md)
-
-## v1.2 更新
-
-- **骨骼疊加**：中央預覽的勾選項可顯示模型骨架，預設關閉，沿用既有渲染畫面。
-- **骨骼分頁**：動畫區加入「動畫／骨骼」分頁，不改三欄配置；顯示標準人形骨骼、模型節點、父節點與必要／選用狀態，提示缺少必要映射。切換分頁保留動畫狀態。
-- **簡化擴充架構**：移除自訂 Plugin 與外部擴充入口；系統資訊與快取操作仍在設定頁，既有資料保留。
-- **精簡系統資訊**：移除 Portable 路徑顯示，改顯示應用版本與 WebView2 執行環境模式。
-- **開發啟動修正**：統一本機前端連線位址；新增文字完整支援繁中與英文。
-
-骨骼檢視為唯讀映射資訊，不代表蒙皮、階層或姿勢已完整驗證。此次未新增模型快照縮圖或其他模型格式轉換。[完整 v1.2 更新說明](docs/v1.2-release-notes.md)
-
-## v1.1 修正
-
-- 單幀 VRMA 不再因動畫長度為 0 而被拒絕；以靜態姿勢套用，避免零長度循環計算。
-- 模型缺少動畫中的可選骨骼時，交由官方綁定函式略過；完全沒有可用軌道的素材仍會拒絕。
-- 加回小圖示切換精簡清單／縮圖，並保存檢視偏好。
-
 ## 資料與升級
 
 程式旁的 `data/` 包含個人設定、SQLite 索引與快取。移動可攜版時，保留整個資料夾即可保留資料。
@@ -136,7 +92,7 @@ cargo test --manifest-path src-tauri/Cargo.toml --locked
 cargo clippy --manifest-path src-tauri/Cargo.toml --locked --all-targets -- -D warnings
 ```
 
-正式 Offline 封裝：
+建置與封裝：
 
 ```powershell
 powershell -File scripts/fetch-runtime.ps1
@@ -167,12 +123,8 @@ Third-party licenses, source availability and screenshot attribution are documen
 
 ## English
 
-v1.3 adds a bilingual Custom pose tab, bone groups, XYZ controls, viewport rotation gizmos, hips offsets, frame capture, reset, undo/redo and static VRMA export. Exports create a new file and contain no avatar meshes or textures. Drafts are cleared on model change or exit. See [Pose guide](docs/v1.3-pose.md).
+VRM Explorer is a portable Windows desktop viewer for VRM avatars, VRMA animations and images. Download the full **v1.4.1 Offline package**, extract it into a writable local folder and run `vrm-explorer.exe`. Use **Settings → Online updates** to get the latest version. Fixed WebView2 is included; routine app updates exclude unchanged Runtime files. Original assets are read-only, and personal settings, indexes, cache and window preferences stay in `data/` beside the executable.
 
-v1.2 adds a skeleton overlay and an Animation/Bones tab with raw humanoid mappings and required-bone status. Custom plugin support is removed; settings shows the application version and WebView2 mode. Existing preview, motion and Portable features remain. See [v1.2 release notes](docs/v1.2-release-notes.md).
-
-VRM Explorer is a portable Windows desktop viewer for VRM avatars, VRMA animations and images. Download the **Offline release**, extract it into a writable local folder and run `vrm-explorer.exe`. Fixed WebView2 is included. Original assets are read-only; settings and cache stay in `data/` beside the executable.
-
-v1.1 supports single-frame poses, compact/thumbnail view switching, cursor-centered zoom, animation playback and model-provided facial expressions. Traditional Chinese is the default language; English is available in Settings. See the linked test records for verified behavior and remaining **Not Tested** cases.
+Browse files in Details, Thumbnails or Compact view, preview avatars and images, play animations, inspect skeletons, edit custom poses and export static VRMA files. The interface supports Traditional Chinese and English. See the [Pose guide](docs/v1.3-pose.md) for editing instructions and [GitHub Releases](https://github.com/kappalien/VRMExplorer/releases) for version history and release notes.
 
 依根目錄 [開發規格](VRM_Explorer_Codex_Development_Spec.md) 開發。
