@@ -1,5 +1,35 @@
 export const zhPreview = {
   preview: {
+    exportPng: "匯出 PNG",
+    pngHint:
+      "匯出目前場景、視角、姿勢與表情，維持預覽比例。請使用新檔名，既有檔案不會被覆蓋。",
+    pngResolution: "最長邊解析度",
+    pngTransparent: "透明背景",
+    pngHelpers: "包含格線、座標軸與骨骼控制點",
+    pngSave: "另存 PNG",
+    pngSaving: "正在匯出…",
+    pngSaved: "PNG 已儲存。",
+    pngCancelled: "已取消儲存。",
+    sceneModels: "場景模型（{{count}}）",
+    activeModel: "目前操作模型",
+    removeModel: "移出場景",
+    arrange: "重新並排",
+    scenePosition: "{{axis}} 位置（公尺）",
+    sceneYaw: "朝向（度）",
+    sceneHint:
+      "動畫、表情、骨骼資訊及姿勢編輯作用於目前操作模型；各模型保留自己的播放與姿勢狀態。最多 8 個模型，場景不會在重啟後保留。",
+    loadSummary: "模型載入效能摘要",
+    readMs: "檔案讀取",
+    parseMs: "格式檢查與模型解析",
+    firstRenderMs: "首次渲染提交",
+    totalMs: "載入總耗時",
+    readBytes: "讀取檔案大小",
+    textureCount: "貼圖數量",
+    maxTexture: "貼圖最大寬／高",
+    estimatedTexture: "貼圖記憶體估算",
+    loadSummaryHint:
+      "耗時不含佇列等待。首次渲染為 CPU 提交時間，並非 GPU 完成時間；貼圖記憶體以 RGBA8 與 mipmap 估算，並非實際 GPU 使用量。",
+
     bones: "骨骼疊加",
     boneTab: "骨骼",
     inspectionTabs: "動畫與骨骼檢視",
@@ -92,6 +122,10 @@ export const zhPreview = {
     },
   },
   errors: {
+    pngExport: "無法匯出 PNG，請檢查場景與圖形環境。",
+    pngExists: "檔案已存在，請使用新的 PNG 檔名。",
+    sceneLimit: "同一場景最多載入 8 個模型。",
+
     container: "檔案不是有效的 VRM／VRMA GLB 容器。",
     externalResource: "素材引用外部資源；目前僅接受內嵌資源的離線素材。",
     model: "VRM 載入失敗，請檢查格式與模型授權資訊。",
@@ -103,6 +137,36 @@ export const zhPreview = {
 };
 export const enPreview = {
   preview: {
+    exportPng: "Export PNG",
+    pngHint:
+      "Export the current scene, camera, poses and expressions at the preview aspect ratio. Choose a new filename; existing files are preserved.",
+    pngResolution: "Longest edge",
+    pngTransparent: "Transparent background",
+    pngHelpers: "Include grid, axes and bone controls",
+    pngSave: "Save PNG",
+    pngSaving: "Exporting…",
+    pngSaved: "PNG saved.",
+    pngCancelled: "Save cancelled.",
+    sceneModels: "Scene models ({{count}})",
+    activeModel: "Active model",
+    removeModel: "Remove from scene",
+    arrange: "Arrange side by side",
+    scenePosition: "{{axis}} position (m)",
+    sceneYaw: "Heading (degrees)",
+    sceneHint:
+      "Animation, expressions, bone information and pose editing affect the active model. Each model retains its own playback and pose state. Up to 8 models; scenes are not restored after restarting.",
+    loadSummary: "Model loading summary",
+    readMs: "File read",
+    parseMs: "Validation and parsing",
+    firstRenderMs: "First render submission",
+    totalMs: "Total load time",
+    readBytes: "Bytes read",
+    textureCount: "Texture count",
+    maxTexture: "Maximum texture width / height",
+    estimatedTexture: "Estimated texture memory",
+    loadSummaryHint:
+      "Timings exclude queue wait. First render measures CPU submission, not GPU completion. Texture memory estimates RGBA8 and mipmaps; it is not actual GPU usage.",
+
     bones: "Skeleton overlay",
     boneTab: "Bones",
     inspectionTabs: "Animation and bone inspection",
@@ -196,6 +260,11 @@ export const enPreview = {
     },
   },
   errors: {
+    pngExport:
+      "Could not export PNG. Check the scene and graphics environment.",
+    pngExists: "File exists. Choose a new PNG filename.",
+    sceneLimit: "A scene supports up to 8 models.",
+
     container: "Not a valid VRM / VRMA GLB container.",
     externalResource:
       "This asset references external resources. Only self-contained offline assets are accepted.",

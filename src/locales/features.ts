@@ -41,6 +41,8 @@ export const zhFeatures = {
     empty: "選擇磁碟機，或輸入資料夾路徑開始瀏覽。",
     noResults: "沒有符合的檔案",
     count: "{{count}} 個項目",
+    multiHint: "Ctrl 複選／Shift 範圍選取；同場景最多 8 個模型。",
+    loadScene: "載入選取模型（{{count}}）",
     preview: "預覽／開啟",
     copyPath: "複製路徑",
     reveal: "在檔案總管顯示",
@@ -114,6 +116,9 @@ export const enFeatures = {
     empty: "Select a drive or enter a folder path to browse.",
     noResults: "No matching files",
     count: "{{count}} items",
+    multiHint:
+      "Ctrl toggles / Shift selects a range; up to 8 models per scene.",
+    loadScene: "Load selected models ({{count}})",
     preview: "Preview / open",
     copyPath: "Copy path",
     reveal: "Show in Explorer",

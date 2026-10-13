@@ -24,7 +24,7 @@ export const zhPose = {
   saved: "姿勢已另存為 VRMA。",
   cancelled: "已取消匯出。",
   scope:
-    "草稿只保留於目前模型；換模型或關閉程式會清除。匯出僅包含骨骼旋轉與髖部位移，不包含表情、模型或貼圖。不同身形仍可能穿模；此功能不含碰撞或 IK。請使用新的檔名，既有檔案不會被覆蓋。",
+    "草稿分別保留於場景中的模型；移出模型或關閉程式會清除。匯出僅包含骨骼旋轉與髖部位移，不包含表情、模型或貼圖。不同身形仍可能穿模；此功能不含碰撞或 IK。請使用新的檔名，既有檔案不會被覆蓋。",
   groups: {
     body: "軀幹與頭部",
     leftArm: "左臂",
@@ -118,7 +118,7 @@ export const enPose = {
   saved: "Pose saved as a new VRMA.",
   cancelled: "Export cancelled.",
   scope:
-    "Drafts belong to the current model and are cleared on model change or exit. Exports contain bone rotations and hips translation only, without expressions, models or textures. Body proportions may still cause intersections; collision and IK are not included. Choose a new filename; existing files are never overwritten.",
+    "Drafts belong to each model in the scene and are cleared on removal or exit. Exports contain bone rotations and hips translation only, without expressions, models or textures. Body proportions may still cause intersections; collision and IK are not included. Choose a new filename; existing files are never overwritten.",
   groups: {
     body: "Body and head",
     leftArm: "Left arm",

@@ -214,7 +214,7 @@ test("direct browse supports folder selection, address input and history without
     settings.getByRole("heading", { name: "系統資訊", exact: true }),
   ).toBeVisible();
   await expect(
-    settings.getByText("應用程式版本: 1.4.3", { exact: true }),
+    settings.getByText("應用程式版本: 1.5.0", { exact: true }),
   ).toBeVisible();
   await expect(
     settings.getByText("WebView2 模式: 系統安裝的執行環境", { exact: true }),

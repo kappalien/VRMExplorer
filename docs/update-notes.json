@@ -1,4 +1,4 @@
 {
-  "zh": "VRM 優先顯示內嵌封面；沒有封面時，在背景逐一產生頭部縮圖並快取。再次瀏覽直接使用快取，主預覽載入時暫停背景渲染。",
-  "en": "VRM thumbnails prefer embedded covers. Models without a cover receive a cached head portrait generated sequentially in the background. Cached portraits are reused, and background rendering pauses while the main preview loads."
+  "zh": "新增透明背景 PNG 匯出、模型載入效能摘要，以及複選 VRM 的多模型場景。模型可並排、調整位置與朝向，分別操作動畫、表情與姿勢。預覽工具列的開啟 VRM 改為匯出 PNG。",
+  "en": "Adds transparent PNG export, per-model loading summaries and multi-model scenes from Explorer selection. Arrange and position avatars, and control each model's animation, expressions and pose. Export PNG replaces Open VRM in the preview toolbar."
 }

@@ -40,6 +40,9 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 | 大型清單       | 虛擬化呈現，僅繪製可見項目；支援鍵盤移動與選取。                                                                                                                       |
 | 模型預覽       | 滑鼠旋轉、平移、以游標為中心縮放；正面／背面／左右視角與重新取景。                                                                                                     |
 | 場景選項       | 格線、骨骼疊加、座標軸、燈光與背景色。                                                                                                                                 |
+| 多模型場景     | 在檔案瀏覽以 Ctrl／Shift 複選並載入同一場景，最多 8 個 VRM；自動並排、切換操作模型、調整 XYZ 位置與朝向、移出場景。各模型保留獨立姿勢及播放狀態。                      |
+| PNG 匯出       | 從預覽工具列匯出目前場景，保留視角、姿勢與表情；透明背景預設開啟，可選 1024／2048／4096 px 最長邊與是否包含格線、座標軸及骨骼控制點。                                  |
+| 載入效能摘要   | 每個模型分別顯示檔案讀取、格式檢查與解析、首次渲染提交及總耗時，並顯示貼圖數量、最大尺寸與記憶體估算；原始模型資訊另行保留。                                           |
 | 模型資訊       | 顯示模型提供的名稱、作者、授權及網格／材質／貼圖／骨骼等資訊。                                                                                                         |
 | 圖片預覽       | 直接檢視支援的圖片素材。                                                                                                                                               |
 | 骨骼檢視       | 人形骨骼對應、模型節點、父節點、必要／選用狀態及缺少必要映射提示。                                                                                                     |
@@ -59,7 +62,8 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 ### 使用限制
 
 - VRM 優先顯示內嵌封面；沒有封面時，會依序在背景產生頭部快照並快取。首次需等待生成，無法解析或超過資源上限的模型保留檔案圖示。詳見 [縮圖快取說明](docs/thumbnail-cache.md)。
-- 姿勢草稿於換模型或關閉程式時清除。匯出不包含表情、視線或物理模擬結果。
+- 場景內切換操作模型會保留各模型姿勢草稿；移出模型或關閉程式時清除。靜態 VRMA 匯出不包含表情、視線或物理模擬結果。
+- 多模型場景不會在重啟後還原；模型數量與貼圖大小會增加 CPU／GPU／記憶體需求。PNG 匯出維持預覽比例，既有檔案不會覆蓋。詳見 [場景與 PNG 說明](docs/scene-export.md)。
 - 不同身形可能產生手掌交叉或穿模；目前不含 IK、碰撞、FBX／BVH／GLB 格式轉換或動畫錄製。
 - `upgrade.ps1` 使用已下載且解壓的新版封裝，不會線上自動更新。
 
@@ -125,6 +129,6 @@ Third-party licenses, source availability and screenshot attribution are documen
 
 VRM Explorer is a portable Windows desktop viewer for VRM avatars, VRMA animations and images. Download the full **v1.4.1 Offline package**, extract it into a writable local folder and run `vrm-explorer.exe`. Use **Settings → Online updates** to get the latest version. Fixed WebView2 is included; routine app updates exclude unchanged Runtime files. Original assets are read-only, and personal settings, indexes, cache and window preferences stay in `data/` beside the executable.
 
-Browse files in Details, Thumbnails or Compact view, preview avatars and images, play animations, inspect skeletons, edit custom poses and export static VRMA files. The interface supports Traditional Chinese and English. See the [Pose guide](docs/v1.3-pose.md) for editing instructions and [GitHub Releases](https://github.com/kappalien/VRMExplorer/releases) for version history and release notes.
+Browse files in Details, Thumbnails or Compact view, load up to eight selected avatars into one scene, preview images, play animations, inspect skeletons, edit independent poses and export static VRMA or transparent scene PNG files. Per-model loading summaries report timings and texture estimates. The interface supports Traditional Chinese and English. See the [Pose guide](docs/v1.3-pose.md) for editing instructions and [GitHub Releases](https://github.com/kappalien/VRMExplorer/releases) for version history and release notes.
 
 依根目錄 [開發規格](VRM_Explorer_Codex_Development_Spec.md) 開發。

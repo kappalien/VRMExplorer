@@ -14,6 +14,7 @@ vi.mock("three", async (original) => {
       setPixelRatio() {}
       setClearColor() {}
       setSize() {}
+      render() {}
       setAnimationLoop() {}
       dispose() {}
       forceContextLoss() {}
@@ -41,6 +42,7 @@ it("failed replacement clears the previous model and its resources", async () =>
       vrm: {
         scene,
         meta: { metaVersion: "1", name: "old" },
+        update: vi.fn(),
         humanoid: {
           humanBones: {},
           getRawBoneNode: () => null,
@@ -85,6 +87,84 @@ vi.mock("three/examples/jsm/loaders/GLTFLoader.js", () => ({
 }));
 import * as THREE from "three";
 import { PreviewEngine } from "../../src/features/vrm-preview/PreviewEngine";
+it("a failed scene member preserves successful models; unchanged models are reused and removal frees resources", async () => {
+  vi.stubGlobal(
+    "ResizeObserver",
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
+  vi.stubGlobal("devicePixelRatio", 1);
+  const geometries = [new THREE.BoxGeometry(), new THREE.BoxGeometry()];
+  const disposals = geometries.map((geometry) => vi.spyOn(geometry, "dispose"));
+  const fixture = (index: number) => {
+    const scene = new THREE.Scene();
+    scene.add(new THREE.Mesh(geometries[index], new THREE.MeshBasicMaterial()));
+    return {
+      scene,
+      userData: {
+        vrm: {
+          scene,
+          meta: { metaVersion: "1", name: `model${index}` },
+          update: vi.fn(),
+          humanoid: {
+            humanBones: {},
+            getRawBoneNode: () => null,
+            resetNormalizedPose: vi.fn(),
+          },
+        },
+      },
+    };
+  };
+  mocks.read.mockReset().mockImplementation(async (path: string) => {
+    if (path === "bad.vrm") throw new Error("errors:model");
+    return new ArrayBuffer(20);
+  });
+  mocks.parse
+    .mockReset()
+    .mockResolvedValueOnce(fixture(0))
+    .mockResolvedValueOnce(fixture(1));
+  let current: Partial<import("../../src/stores/preview").Playback> = {};
+  const engine = new PreviewEngine(
+    document.createElement("div"),
+    (patch) => (current = { ...current, ...patch }),
+  );
+  const asset = (path: string) => ({
+    path,
+    name: path,
+    kind: "vrm",
+    size: 1,
+    modified: 1,
+  });
+  try {
+    await engine.loadModels([asset("a.vrm"), asset("bad.vrm")], "bad.vrm");
+    expect(current.activeModelPath).toBe("a.vrm");
+    expect(current.hasModel).toBe(true);
+    expect(current.error).toBe("errors:model");
+    await engine.loadModels([asset("a.vrm"), asset("b.vrm")], "b.vrm");
+    expect(mocks.read.mock.calls.map((call) => call[0])).toEqual([
+      "a.vrm",
+      "bad.vrm",
+      "b.vrm",
+    ]);
+    expect(current.sceneModels).toHaveLength(2);
+    expect(current.metadata?.name).toBe("model1");
+    engine.transformModel(0, 3);
+    expect(
+      current.sceneModels?.find((model) => model.path === "b.vrm")?.position[0],
+    ).toBe(3);
+    engine.activateModel("a.vrm");
+    expect(current.metadata?.name).toBe("model0");
+    await engine.loadModels([asset("b.vrm")], "b.vrm");
+    expect(disposals[0]).toHaveBeenCalledTimes(1);
+    expect(disposals[1]).not.toHaveBeenCalled();
+  } finally {
+    engine.dispose();
+    vi.unstubAllGlobals();
+  }
+  expect(disposals[1]).toHaveBeenCalledTimes(1);
+});
 it("rapid model switches skip queued and stale reads before parsing", async () => {
   vi.stubGlobal(
     "ResizeObserver",
@@ -198,7 +278,10 @@ it("zero-duration VRMA applies a held pose, skips absent optional bones and stil
   const scene = new THREE.Scene();
   const arm = new THREE.Object3D();
   arm.name = "normalizedLeftUpperArm";
-  scene.add(arm);
+  scene.add(
+    arm,
+    new THREE.Mesh(new THREE.BoxGeometry(), new THREE.MeshBasicMaterial()),
+  );
   const vrm = {
     scene,
     meta: { metaVersion: "1" },

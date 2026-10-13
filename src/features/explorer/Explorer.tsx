@@ -1,3 +1,5 @@
+import { usePreview } from "../../stores/preview";
+import { MAX_SCENE_MODELS } from "../../core/scene-limits";
 import { useEffect, useMemo, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useTranslation } from "react-i18next";
@@ -246,10 +248,18 @@ export function ExplorerFiles() {
             render={(e) => (
               <button
                 key={e.path}
-                className={`file-row ${s.selected?.path === e.path ? "selected" : ""}`}
-                onClick={() => {
+                className={`file-row ${s.selection.some((selected) => selected.path === e.path) ? "selected" : ""}`}
+                onClick={(event) => {
                   setMenu(null);
-                  s.select(e);
+                  s.select(
+                    e,
+                    event.shiftKey
+                      ? "range"
+                      : event.ctrlKey || event.metaKey
+                        ? "toggle"
+                        : undefined,
+                    entries,
+                  );
                 }}
                 onDoubleClick={() => {
                   if (e.kind === "folder") void s.navigate(e.path);
@@ -264,6 +274,9 @@ export function ExplorerFiles() {
                   event.preventDefault();
                   setMenu(e);
                 }}
+                aria-pressed={s.selection.some(
+                  (selected) => selected.path === e.path,
+                )}
                 title={e.path}
               >
                 <span className="file-icon">
@@ -304,6 +317,26 @@ export function ExplorerFiles() {
             )}
           />
           {entries.length === 0 && <p>{t("explorer:noResults")}</p>}
+          <div className="scene-selection">
+            <small>{t("explorer:multiHint")}</small>
+            <button
+              disabled={
+                !s.selection.some((e) => e.kind === "vrm") ||
+                s.selection.filter((e) => e.kind === "vrm").length >
+                  MAX_SCENE_MODELS
+              }
+              onClick={() => {
+                usePreview.getState().setModels(s.selection);
+                const active = usePreview.getState().model;
+                if (active) useExplorer.setState({ selected: active });
+                setMenu(null);
+              }}
+            >
+              {t("explorer:loadScene", {
+                count: s.selection.filter((e) => e.kind === "vrm").length,
+              })}
+            </button>
+          </div>
           <div className="pagination">
             <span>{t("explorer:count", { count: entries.length })}</span>
           </div>

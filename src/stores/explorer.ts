@@ -12,6 +12,8 @@ interface ExplorerState {
   history: string[];
   index: number;
   selected: AssetEntry | null;
+  selection: AssetEntry[];
+  selectionAnchor: string;
   grants: Grant[];
   drives: string[];
   busy: boolean;
@@ -20,7 +22,11 @@ interface ExplorerState {
   init: () => Promise<void>;
   navigate: (path: string, historyIndex?: number) => Promise<void>;
   refreshGrants: () => Promise<void>;
-  select: (entry: AssetEntry | null) => void;
+  select: (
+    entry: AssetEntry | null,
+    mode?: "toggle" | "range",
+    ordered?: AssetEntry[],
+  ) => void;
   updatePrefs: (patch: Partial<ExplorerPrefs>) => Promise<void>;
 }
 let request = 0;
@@ -30,6 +36,8 @@ export const useExplorer = create<ExplorerState>((set, get) => ({
   history: [],
   index: -1,
   selected: null,
+  selection: [],
+  selectionAnchor: "",
   grants: [],
   drives: [],
   busy: false,
@@ -55,7 +63,30 @@ export const useExplorer = create<ExplorerState>((set, get) => ({
   },
   refreshGrants: async () =>
     set({ grants: await invoke<Grant[]>("list_grants") }),
-  select: (selected) => set({ selected }),
+  select: (entry, mode, ordered) => {
+    if (!entry) {
+      set({ selected: null, selection: [], selectionAnchor: "" });
+      return;
+    }
+    const s = get();
+    if (mode === "toggle") {
+      const selection = s.selection.some((e) => e.path === entry.path)
+        ? s.selection.filter((e) => e.path !== entry.path)
+        : [...s.selection, entry];
+      set({ selection, selectionAnchor: entry.path });
+    } else if (mode === "range") {
+      const list = ordered ?? s.entries,
+        a = list.findIndex((e) => e.path === s.selectionAnchor),
+        b = list.findIndex((e) => e.path === entry.path);
+      set({
+        selection:
+          a < 0 || b < 0
+            ? [entry]
+            : list.slice(Math.min(a, b), Math.max(a, b) + 1),
+      });
+    } else
+      set({ selected: entry, selection: [entry], selectionAnchor: entry.path });
+  },
   navigate: async (path, historyIndex) => {
     const current = ++request;
     set({ busy: true, error: "" });
@@ -77,6 +108,8 @@ export const useExplorer = create<ExplorerState>((set, get) => ({
         index: historyIndex ?? history.length - 1,
         busy: false,
         selected: null,
+        selection: [],
+        selectionAnchor: "",
       });
       await get().updatePrefs({
         lastPath: path || state.prefs.lastPath || "",

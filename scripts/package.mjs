@@ -38,6 +38,7 @@ for (const mode of ["Offline"]) {
     "v1.4-release-notes.md",
     "v1.4.2-release-notes.md",
     "thumbnail-cache.md",
+    "scene-export.md",
     "licensing.md",
   ])
     fs.copyFileSync(

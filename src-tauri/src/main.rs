@@ -2,6 +2,7 @@
 mod cache;
 mod filesystem;
 mod library;
+mod png_export;
 mod portable;
 mod pose_export;
 mod updates;
@@ -100,6 +101,7 @@ fn main() {
                 updates::cancel_update,
                 updates::update_acknowledge,
                 pose_export::export_pose,
+                png_export::export_png,
                 load_settings,
                 save_settings,
                 filesystem::pick_asset,

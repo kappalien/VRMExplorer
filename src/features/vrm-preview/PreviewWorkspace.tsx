@@ -1,3 +1,4 @@
+import { PngExport, SceneControls } from "./SceneControls";
 import { PosePanel } from "./PosePanel";
 import { BonePanel } from "./BonePanel";
 import { createPortal } from "react-dom";
@@ -6,12 +7,7 @@ import { useTranslation } from "react-i18next";
 import type { PreviewEngine } from "./PreviewEngine";
 import { usePreview } from "../../stores/preview";
 import { useExplorer } from "../../stores/explorer";
-import {
-  images,
-  pickAsset,
-  errorKey,
-  type AssetEntry,
-} from "../../core/assets";
+import { images, errorKey } from "../../core/assets";
 import { ImagePreview } from "../image-preview/ImagePreview";
 import { desktopAvailable } from "../../core/portable";
 import { AnimationLibrary } from "../animation-library/AnimationLibrary";
@@ -25,7 +21,7 @@ export function PreviewWorkspace({
   const { t } = useTranslation();
   const host = useRef<HTMLDivElement>(null);
   const engine = useRef<PreviewEngine | null>(null);
-  const { model, animation, playback, setModel, setAnimation, update } =
+  const { model, models, animation, playback, setModel, setAnimation, update } =
     usePreview();
   const selected = useExplorer((s) => s.selected);
   const [tab, setTab] = useState<"animation" | "bones" | "pose">("animation");
@@ -35,7 +31,7 @@ export function PreviewWorkspace({
   const [lights, setLights] = useState(true);
   const [background, setBackground] = useState("#e5eaf2");
   const [engineVersion, setEngineVersion] = useState(0);
-  const needsEngine = model !== null || animation !== null;
+  const needsEngine = models.length > 0 || animation !== null;
   useEffect(() => {
     if (!host.current || !needsEngine) return;
     let alive = true;
@@ -61,7 +57,13 @@ export function PreviewWorkspace({
     else if (selected?.kind === "vrma") setAnimation(selected);
   }, [selected, setModel, setAnimation]);
   useEffect(() => {
-    if (model) void engine.current?.loadModel(model.path);
+    void engine.current?.loadModels(
+      models,
+      usePreview.getState().model?.path ?? "",
+    );
+  }, [models, engineVersion]);
+  useEffect(() => {
+    if (model) engine.current?.activateModel(model.path);
   }, [model, engineVersion]);
   useEffect(() => {
     if (animation) void engine.current?.loadAnimation(animation.path);
@@ -86,28 +88,6 @@ export function PreviewWorkspace({
     playback.playing,
     update,
   ]);
-  const pick = async (kind: "vrm" | "vrma") => {
-    try {
-      const g = await pickAsset(
-        kind,
-        t(kind === "vrm" ? "preview:openModel" : "animation:choose"),
-      );
-      if (g) {
-        await useExplorer.getState().refreshGrants();
-        const entry: AssetEntry = {
-          path: g.path,
-          name: g.path.split(/[\\/]/).pop() ?? g.path,
-          kind,
-          size: 0,
-          modified: 0,
-        };
-        if (kind === "vrm") setModel(entry);
-        else setAnimation(entry);
-      }
-    } catch (e) {
-      update({ error: errorKey(e) });
-    }
-  };
   const image = selected && images.includes(selected.kind) ? selected : null;
   useEffect(() => {
     engine.current?.showPose(tab === "pose" && !image);
@@ -116,9 +96,10 @@ export function PreviewWorkspace({
     <>
       <h2>{t("preview")}</h2>
       <div className="preview-controls">
-        <button disabled={!desktopAvailable} onClick={() => void pick("vrm")}>
-          {t("preview:openModel")}
-        </button>
+        <PngExport
+          getEngine={() => engine.current}
+          disabled={!playback.hasModel || playback.loading || !!image}
+        />
         {(["front", "back", "left", "right"] as const).map((v) => (
           <button
             key={v}
@@ -176,6 +157,7 @@ export function PreviewWorkspace({
         </p>
       )}
       <p>{model?.name ?? t("empty")}</p>
+      <SceneControls getEngine={() => engine.current} playback={playback} />
       {Object.keys(playback.metadata).length > 0 && (
         <details>
           <summary>{t("preview:metadata")}</summary>

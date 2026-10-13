@@ -1,3 +1,12 @@
+import {
+  disposeModel,
+  textureSummary,
+  pngPixels,
+  MAX_SCENE_MODELS,
+  type LoadSummary,
+} from "./scene";
+import type { AssetEntry } from "../../core/assets";
+import type { PoseState } from "./pose";
 import { PoseEditor } from "./PoseEditor";
 import { emptyPose } from "./pose";
 import { inspectBones } from "./bones";
@@ -15,22 +24,71 @@ import { inspectContainer } from "./container";
 import type { Playback } from "../../stores/preview";
 import { WorkQueue } from "../../core/work-queue";
 import { ExpressionControl, type ExpressionMode } from "./expressions";
+interface ModelSlot {
+  path: string;
+  name: string;
+  fingerprint: string;
+  vrm: VRM;
+  root: THREE.Group;
+  width: number;
+  expressions: ExpressionControl;
+  poseEditor?: PoseEditor;
+  poseState: PoseState;
+  skeleton?: THREE.SkeletonHelper;
+  mixer?: THREE.AnimationMixer;
+  action?: THREE.AnimationAction;
+  staticPose: boolean;
+  clipPath: string;
+  metadata: Record<string, unknown>;
+  summary: LoadSummary;
+}
 export class PreviewEngine {
-  private poseEditor?: PoseEditor;
+  private models = new Map<string, ModelSlot>();
+  private activePath = "";
+  private requestedActive = "";
+  private fallbackExpressions = new ExpressionControl();
+  private get active() {
+    return this.models.get(this.activePath);
+  }
+  private get vrm() {
+    return this.active?.vrm;
+  }
+  private get expressions() {
+    return this.active?.expressions ?? this.fallbackExpressions;
+  }
+  private get poseEditor() {
+    return this.active?.poseEditor;
+  }
+  private set poseEditor(value: PoseEditor | undefined) {
+    if (this.active) this.active.poseEditor = value;
+  }
+  private get mixer() {
+    return this.active?.mixer;
+  }
+  private set mixer(value: THREE.AnimationMixer | undefined) {
+    if (this.active) this.active.mixer = value;
+  }
+  private get action() {
+    return this.active?.action;
+  }
+  private set action(value: THREE.AnimationAction | undefined) {
+    if (this.active) this.active.action = value;
+  }
+  private get staticPose() {
+    return this.active?.staticPose ?? false;
+  }
+  private set staticPose(value: boolean) {
+    if (this.active) this.active.staticPose = value;
+  }
   private poseVisible = false;
-  private skeleton?: THREE.SkeletonHelper;
   private showBones = false;
-  private expressions = new ExpressionControl();
   private renderer: THREE.WebGLRenderer;
   private scene = new THREE.Scene();
   private camera = new THREE.PerspectiveCamera(35, 1, 0.01, 1000);
   private controls: OrbitControls;
   private observer: ResizeObserver;
-  private vrm?: VRM;
   private animation?: VRMAnimation;
   private animationPath = "";
-  private mixer?: THREE.AnimationMixer;
-  private action?: THREE.AnimationAction;
   private modelEpoch = 0;
   private animationEpoch = 0;
   private loads = new WorkQueue(1, 2);
@@ -41,7 +99,6 @@ export class PreviewEngine {
   private notified = 0;
   private speed = 1;
   private loop = true;
-  private staticPose = false;
   private grid = new THREE.GridHelper(10, 20);
   private axes = new THREE.AxesHelper(0.5);
   private lights = new THREE.Group();
@@ -77,9 +134,11 @@ export class PreviewEngine {
       const now = performance.now();
       const delta = Math.min((now - this.last) / 1000, 0.1);
       this.last = now;
-      if (!this.poseEditor?.active) this.mixer?.update(delta);
-      this.expressions.apply();
-      this.vrm?.update(delta);
+      for (const model of this.models.values()) {
+        if (!model.poseEditor?.active) model.mixer?.update(delta);
+        model.expressions.apply();
+        model.vrm.update(delta);
+      }
       this.poseEditor?.tick();
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
@@ -98,6 +157,7 @@ export class PreviewEngine {
   }
   editPose(capture = false) {
     if (!this.vrm || this.disposed) return;
+    const slot = this.active!;
     if (!this.poseEditor)
       this.poseEditor = new PoseEditor(
         this.vrm,
@@ -106,7 +166,10 @@ export class PreviewEngine {
         this.renderer.domElement,
         this.controls,
         () => this.pause(),
-        (pose) => this.onState({ pose }),
+        (pose) => {
+          slot.poseState = pose;
+          if (this.active === slot) this.onState({ pose });
+        },
       );
     this.poseEditor.show(this.poseVisible);
     this.poseEditor.start(capture);
@@ -143,51 +206,121 @@ export class PreviewEngine {
     this.camera.updateProjectionMatrix();
   }
   async loadModel(path: string) {
+    await this.loadModels(
+      [
+        {
+          path,
+          name: path.split(/[\\/]/).pop() ?? path,
+          kind: "vrm",
+          size: 0,
+          modified: 0,
+        },
+      ],
+      path,
+    );
+  }
+  async loadModels(entries: AssetEntry[], activePath: string) {
+    if (entries.length > MAX_SCENE_MODELS) {
+      this.onState({ error: "errors:sceneLimit" });
+      return;
+    }
     const epoch = ++this.modelEpoch;
     this.modelRequest?.abort();
+    this.animationRequest?.abort();
+    this.animationEpoch++;
     const request = new AbortController();
     this.modelRequest = request;
+    this.requestedActive = activePath;
+    const sources = new Map(
+      entries.map((e) => [e.path, `${e.size}:${e.modified}`]),
+    );
+    for (const slot of this.models.values())
+      if (sources.get(slot.path) !== slot.fingerprint) this.removeSlot(slot);
+    if (!this.models.has(this.activePath)) this.activePath = "";
+    if (!entries.length) {
+      this.publishActive();
+      this.onState({ loading: false });
+      return;
+    }
     this.onState({ loading: true, error: "" });
     await this.loads
-      .run(() => this.processModel(path, epoch), request.signal)
-      .catch((e) => {
-        if (!this.disposed && !request.signal.aborted) {
-          this.clearModel();
-          this.onState({
-            loading: false,
-            error:
+      .run(async () => {
+        let error = "";
+        for (const entry of entries) {
+          if (
+            this.disposed ||
+            request.signal.aborted ||
+            epoch !== this.modelEpoch
+          )
+            return;
+          if (this.models.has(entry.path)) continue;
+          try {
+            await this.processModel(entry, epoch);
+          } catch (e) {
+            error =
               e instanceof Error && e.message.startsWith("errors:")
                 ? e.message
-                : "errors:model",
-          });
+                : "errors:model";
+          }
         }
+        if (
+          this.disposed ||
+          request.signal.aborted ||
+          epoch !== this.modelEpoch
+        )
+          return;
+        this.activateModel(
+          this.models.has(this.requestedActive)
+            ? this.requestedActive
+            : (this.models.keys().next().value ?? ""),
+        );
+        this.arrange();
+        this.onState({ loading: false, error });
+      }, request.signal)
+      .catch((e) => {
+        if (!this.disposed && !request.signal.aborted)
+          this.onState({
+            loading: false,
+            error: String(e).startsWith("errors:") ? String(e) : "errors:model",
+          });
       });
   }
-  private async processModel(path: string, epoch: number) {
+  private async processModel(entry: AssetEntry, epoch: number) {
+    const start = performance.now();
+    const data = await readAsset(entry.path),
+      readEnd = performance.now();
     if (this.disposed || epoch !== this.modelEpoch) return;
-    this.onState({ loading: true, error: "" });
+    inspectContainer(data, "vrm");
+    const loader = new GLTFLoader();
+    loader.register((parser) => new VRMLoaderPlugin(parser));
+    const gltf = await loader.parseAsync(data, ""),
+      parsed = performance.now();
+    const vrm = gltf.userData.vrm as VRM | undefined;
+    if (!vrm) {
+      VRMUtils.deepDispose(gltf.scene);
+      throw new Error("errors:model");
+    }
+    if (this.disposed || epoch !== this.modelEpoch) {
+      disposeModel(vrm.scene);
+      return;
+    }
+    let slot: ModelSlot | undefined;
     try {
-      const data = await readAsset(path);
-      if (this.disposed || epoch !== this.modelEpoch) return;
-      inspectContainer(data, "vrm");
-      const loader = new GLTFLoader();
-      loader.register((parser) => new VRMLoaderPlugin(parser));
-      const gltf = await loader.parseAsync(data, "");
-      const vrm = gltf.userData.vrm as VRM | undefined;
-      if (!vrm) {
-        VRMUtils.deepDispose(gltf.scene);
-        throw new Error("errors:model");
-      }
-      if (this.disposed || epoch !== this.modelEpoch) {
-        VRMUtils.deepDispose(vrm.scene);
-        return;
-      }
-      this.clearModel();
-      this.vrm = vrm;
-      this.expressions.attach(vrm.expressionManager);
       VRMUtils.rotateVRM0(vrm);
-      this.scene.add(vrm.scene);
-      this.fit();
+      vrm.update(0);
+      const bounds = new THREE.Box3().setFromObject(vrm.scene),
+        size = bounds.getSize(new THREE.Vector3());
+      if (
+        bounds.isEmpty() ||
+        ![...bounds.min.toArray(), ...bounds.max.toArray()].every(
+          Number.isFinite,
+        )
+      )
+        throw new Error("errors:model");
+      const root = new THREE.Group();
+      root.add(vrm.scene);
+      // Place avatars on the ground without altering humanoid local transforms.
+      vrm.scene.position.y -= bounds.min.y;
       let meshes = 0,
         triangles = 0;
       const materials = new Set<THREE.Material>();
@@ -213,11 +346,19 @@ export class PreviewEngine {
               Array.isArray(v)),
         ),
       );
-      this.onState({
-        hasModel: true,
-        expression: "animation",
-        availableExpressions: this.expressions.available,
-        loading: false,
+      const expressions = new ExpressionControl();
+      expressions.attach(vrm.expressionManager);
+      slot = {
+        path: entry.path,
+        name: entry.name,
+        fingerprint: `${entry.size}:${entry.modified}`,
+        vrm,
+        root,
+        width: Math.max(size.x, 0.5),
+        expressions,
+        poseState: { ...emptyPose },
+        staticPose: false,
+        clipPath: "",
         metadata: {
           ...meta,
           version: vrm.meta.metaVersion,
@@ -226,23 +367,200 @@ export class PreviewEngine {
           triangles: Math.floor(triangles),
           bones: Object.keys(vrm.humanoid.humanBones).length,
         },
-      });
-      this.onState({
-        bones: inspectBones(vrm.humanoid, vrm.meta.metaVersion === "0"),
-      });
+        summary: {
+          bytes: data.byteLength,
+          readMs: readEnd - start,
+          parseMs: parsed - readEnd,
+          firstRenderMs: 0,
+          totalMs: 0,
+          ...textureSummary(vrm.scene),
+        },
+      };
+      this.models.set(entry.path, slot);
+      this.scene.add(root);
+      this.arrange();
+      const renderStart = performance.now();
+      this.renderer.render(this.scene, this.camera);
+      slot.summary.firstRenderMs = performance.now() - renderStart;
+      slot.summary.totalMs = performance.now() - start;
       this.setBones(this.showBones);
-      this.bind();
-    } catch (e) {
-      if (!this.disposed && epoch === this.modelEpoch) {
-        this.clearModel();
-        this.onState({
-          loading: false,
-          error:
-            e instanceof Error && e.message.startsWith("errors:")
-              ? e.message
-              : "errors:model",
-        });
+    } catch (error) {
+      if (slot) this.removeSlot(slot);
+      else disposeModel(vrm.scene);
+      throw error;
+    }
+  }
+  activateModel(path: string) {
+    this.requestedActive = path;
+    if (!this.models.has(path)) {
+      if (!this.models.size) {
+        this.activePath = "";
+        this.publishActive();
       }
+      return;
+    }
+    if (this.activePath !== path) {
+      this.poseEditor?.show(false);
+      this.activePath = path;
+      this.poseEditor?.show(this.poseVisible);
+    }
+    if (!this.action && this.animation && !this.poseEditor?.active) this.bind();
+    this.publishActive();
+  }
+  private publishScene() {
+    this.onState({
+      sceneModels: [...this.models.values()].map((slot) => ({
+        path: slot.path,
+        name: slot.name,
+        position: slot.root.position.toArray() as [number, number, number],
+        yaw: THREE.MathUtils.radToDeg(slot.root.rotation.y),
+      })),
+    });
+  }
+  private publishActive() {
+    const slot = this.active;
+    this.onState({
+      activeModelPath: slot?.path ?? "",
+      hasModel: !!slot,
+      metadata: slot?.metadata ?? {},
+      loadSummary: slot?.summary ?? null,
+      bones: slot
+        ? inspectBones(slot.vrm.humanoid, slot.vrm.meta.metaVersion === "0")
+        : [],
+      pose: slot?.poseState ?? { ...emptyPose },
+      expression: slot?.expressions.mode ?? "animation",
+      availableExpressions: slot?.expressions.available ?? [],
+      hasClip: !!slot?.action,
+      staticPose: slot?.staticPose ?? false,
+      clipPath: slot?.clipPath ?? "",
+      time: slot?.action?.time ?? 0,
+      duration: slot?.action?.getClip().duration ?? 0,
+      playing: !!slot?.action?.isRunning(),
+      speed: slot?.mixer?.timeScale ?? this.speed,
+      loop: slot?.action ? slot.action.loop === THREE.LoopRepeat : this.loop,
+    });
+    this.publishScene();
+  }
+  arrange() {
+    const slots = [...this.models.values()];
+    const total =
+      slots.reduce((sum, slot) => sum + slot.width, 0) +
+      Math.max(0, slots.length - 1) * 0.35;
+    let x = -total / 2;
+    for (const slot of slots) {
+      slot.root.position.set(x + slot.width / 2, 0, 0);
+      slot.root.rotation.y = 0;
+      x += slot.width + 0.35;
+    }
+    this.publishScene();
+    this.fit();
+  }
+  transformModel(axis: number, value: number, yaw = false) {
+    if (!this.active || !Number.isFinite(value)) return;
+    if (yaw)
+      this.active.root.rotation.y = THREE.MathUtils.degToRad(
+        THREE.MathUtils.clamp(value, -180, 180),
+      );
+    else if (axis >= 0 && axis < 3)
+      this.active.root.position.setComponent(
+        axis,
+        THREE.MathUtils.clamp(value, -100, 100),
+      );
+    this.publishScene();
+  }
+  private removeSlot(slot: ModelSlot) {
+    slot.poseEditor?.dispose();
+    slot.mixer?.stopAllAction();
+    slot.mixer?.uncacheRoot(slot.vrm.scene);
+    if (slot.skeleton) {
+      this.scene.remove(slot.skeleton);
+      slot.skeleton.dispose();
+    }
+    this.scene.remove(slot.root);
+    disposeModel(slot.root);
+    this.models.delete(slot.path);
+  }
+  async exportPng(edge: number, transparent: boolean, helpers: boolean) {
+    if (
+      !this.models.size ||
+      this.disposed ||
+      ![1024, 2048, 4096].includes(edge)
+    )
+      throw new Error("errors:pngExport");
+    const aspect = this.camera.aspect;
+    const width = aspect >= 1 ? edge : Math.max(1, Math.round(edge * aspect));
+    const height = aspect >= 1 ? Math.max(1, Math.round(edge / aspect)) : edge;
+    if (
+      width > this.renderer.capabilities.maxTextureSize ||
+      height > this.renderer.capabilities.maxTextureSize
+    )
+      throw new Error("errors:pngExport");
+    const target = new THREE.WebGLRenderTarget(width, height, { samples: 4 });
+    target.texture.colorSpace = THREE.SRGBColorSpace;
+    const previousTarget = this.renderer.getRenderTarget(),
+      color = this.renderer.getClearColor(new THREE.Color()),
+      alpha = this.renderer.getClearAlpha();
+    const background = this.scene.background;
+    const hidden = [
+      this.grid,
+      this.axes,
+      ...[...this.models.values()].flatMap((s) =>
+        s.skeleton ? [s.skeleton] : [],
+      ),
+    ].map((object) => ({ object, visible: object.visible }));
+    const pixels = new Uint8Array(width * height * 4);
+    let reading: Promise<unknown>;
+    try {
+      if (!helpers) {
+        hidden.forEach(({ object }) => (object.visible = false));
+        this.poseEditor?.show(false);
+      }
+      if (transparent) {
+        this.scene.background = null;
+        this.renderer.setClearColor(color, 0);
+      }
+      this.renderer.setRenderTarget(target);
+      this.renderer.render(this.scene, this.camera);
+      reading = this.renderer.readRenderTargetPixelsAsync(
+        target,
+        0,
+        0,
+        width,
+        height,
+        pixels,
+      );
+    } catch (error) {
+      target.dispose();
+      throw error;
+    } finally {
+      this.renderer.setRenderTarget(previousTarget);
+      this.renderer.setClearColor(color, alpha);
+      this.scene.background = background;
+      hidden.forEach(({ object, visible }) => (object.visible = visible));
+      this.poseEditor?.show(this.poseVisible);
+    }
+    try {
+      await reading;
+      const canvas = document.createElement("canvas");
+      canvas.width = width;
+      canvas.height = height;
+      const context = canvas.getContext("2d");
+      if (!context) throw new Error("errors:pngExport");
+      context.putImageData(
+        new ImageData(pngPixels(pixels, width, height), width, height),
+        0,
+        0,
+      );
+      const blob = await new Promise<Blob>((resolve, reject) =>
+        canvas.toBlob(
+          (b) => (b ? resolve(b) : reject(new Error("errors:pngExport"))),
+          "image/png",
+        ),
+      );
+      if (blob.size > 32 * 1024 * 1024) throw new Error("errors:tooLarge");
+      return new Uint8Array(await blob.arrayBuffer());
+    } finally {
+      target.dispose();
     }
   }
   async loadAnimation(path: string) {
@@ -319,6 +637,7 @@ export class PreviewEngine {
       this.action.clampWhenFinished = true;
       this.action.play();
       this.action.paused = true;
+      if (this.active) this.active.clipPath = this.animationPath;
       this.onState({
         hasClip: true,
         staticPose: this.staticPose,
@@ -396,8 +715,10 @@ export class PreviewEngine {
     this.onState({ loop });
   }
   fit() {
-    if (!this.vrm) return;
-    const box = new THREE.Box3().setFromObject(this.vrm.scene);
+    if (!this.models.size) return;
+    const box = new THREE.Box3();
+    for (const slot of this.models.values())
+      box.union(new THREE.Box3().setFromObject(slot.root));
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3()),
       size = box.getSize(new THREE.Vector3());
@@ -431,25 +752,28 @@ export class PreviewEngine {
   }
   setBones(visible: boolean) {
     this.showBones = visible;
-    if (visible && this.vrm && !this.skeleton) {
-      const root = this.vrm.humanoid.getRawBoneNode("hips");
-      if (root) {
-        this.skeleton = new THREE.SkeletonHelper(root);
-        for (const material of Array.isArray(this.skeleton.material)
-          ? this.skeleton.material
-          : [this.skeleton.material]) {
-          material.depthTest = false;
-          material.depthWrite = false;
+    for (const slot of this.models.values()) {
+      if (visible && !slot.skeleton) {
+        const root = slot.vrm.humanoid.getRawBoneNode("hips");
+        if (root) {
+          slot.skeleton = new THREE.SkeletonHelper(root);
+          for (const material of Array.isArray(slot.skeleton.material)
+            ? slot.skeleton.material
+            : [slot.skeleton.material]) {
+            material.depthTest = false;
+            material.depthWrite = false;
+          }
+          slot.skeleton.renderOrder = 1000;
+          this.scene.add(slot.skeleton);
         }
-        this.skeleton.renderOrder = 1000;
-        this.scene.add(this.skeleton);
       }
+      if (slot.skeleton) slot.skeleton.visible = visible;
     }
-    if (this.skeleton) this.skeleton.visible = visible;
   }
   private clearAction() {
     this.poseEditor?.suspend();
     this.staticPose = false;
+    if (this.active) this.active.clipPath = "";
     if (this.mixer && this.vrm) {
       this.mixer.stopAllAction();
       this.mixer.uncacheRoot(this.vrm.scene);
@@ -468,28 +792,9 @@ export class PreviewEngine {
     });
   }
   private clearModel() {
-    this.poseEditor?.dispose();
-    this.poseEditor = undefined;
-    this.onState({ pose: { ...emptyPose } });
-    this.clearAction();
-    if (this.skeleton) {
-      this.scene.remove(this.skeleton);
-      this.skeleton.dispose();
-      this.skeleton = undefined;
-    }
-    if (this.vrm) {
-      this.scene.remove(this.vrm.scene);
-      VRMUtils.deepDispose(this.vrm.scene);
-      this.vrm = undefined;
-    }
-    this.expressions.attach();
-    this.onState({
-      hasModel: false,
-      metadata: {},
-      bones: [],
-      expression: "animation",
-      availableExpressions: [],
-    });
+    for (const slot of this.models.values()) this.removeSlot(slot);
+    this.activePath = "";
+    this.publishActive();
   }
   dispose() {
     this.disposed = true;
@@ -505,6 +810,7 @@ export class PreviewEngine {
     );
     this.controls.dispose();
     this.clearModel();
+    this.onState({ loading: false });
     VRMUtils.deepDispose(this.scene);
     this.renderer.dispose();
     this.renderer.forceContextLoss();

@@ -106,7 +106,16 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
                 favorites: [],
                 recent: [],
                 view: "list",
+                lastPath: "C:\\",
               };
+            case "browse_directory":
+              return ["Vivian.vrm", "Other.vrm"].map((name) => ({
+                path: "C:\\" + name,
+                name,
+                kind: "vrm",
+                size: 1,
+                modified: 0,
+              }));
             case "list_drives":
               return ["C:\\"];
             case "list_grants":
@@ -163,8 +172,8 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.locator(".badge")).toHaveText("v1.4");
-  await page.getByRole("button", { name: "開啟 VRM", exact: true }).click();
+  await expect(page.locator(".badge")).toHaveText("v1.5");
+  await page.locator(".file-row").filter({ hasText: "Vivian.vrm" }).click();
   await expect(
     page.getByRole("button", { name: "重新取景", exact: true }),
   ).toBeEnabled({ timeout: 30000 });
@@ -260,7 +269,7 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
   await page.getByRole("button", { name: "擷取目前姿勢", exact: true }).click();
   await expect(angle).toHaveValue("35");
   await expect(page.getByRole("alert")).toHaveCount(0);
-  await page.getByRole("button", { name: "開啟 VRM", exact: true }).click();
+  await page.locator(".file-row").filter({ hasText: "Other.vrm" }).click();
   await expect(
     page.getByRole("button", { name: "繼續編輯", exact: true }),
   ).toBeVisible();
