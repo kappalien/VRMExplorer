@@ -1,16 +1,16 @@
-# VRM Explorer v1.4 (codex開發)
+# VRM Explorer v1.4.1 (codex開發)
 
 Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用及可攜式為優先，原始素材唯讀；繁體中文預設，支援英文介面。
 
 ## 下載
 
-- [v1.4 Offline 可攜版（Windows x64，約 302 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.4.0/VRM-Explorer-1.4.0-Offline-win-x64.zip)
-- [SHA-256 校驗碼](https://github.com/kappalien/VRMExplorer/releases/download/v1.4.0/VRM-Explorer-1.4.0-Offline-win-x64.zip.sha256)
+- [v1.4.1 Offline 可攜版（Windows x64，約 302 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.4.1/VRM-Explorer-1.4.1-Offline-win-x64.zip)
+- [SHA-256 校驗碼](https://github.com/kappalien/VRMExplorer/releases/download/v1.4.1/VRM-Explorer-1.4.1-Offline-win-x64.zip.sha256)
 - [所有發行版本](https://github.com/kappalien/VRMExplorer/releases)
 
 一般使用者請下載上面的 Offline ZIP。GitHub 的 **Code → Download ZIP** 是原始碼，不能直接啟動。
 
-目前發行目標為 **Windows 11 x64**。完整解壓後約 685 MiB，主要是隨附 Microsoft Fixed WebView2 Runtime 154.0.4258.62；使用程式不需安裝 Node.js、Rust 或 MSVC。
+目前發行目標為 **Windows 11 x64**。完整解壓後約 688 MiB，主要是隨附 Microsoft Fixed WebView2 Runtime 154.0.4258.62；使用程式不需安裝 Node.js、Rust 或 MSVC。
 
 ## 使用範例
 
@@ -61,7 +61,7 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 - 不同身形可能產生手掌交叉或穿模；目前不含 IK、碰撞、FBX／BVH／GLB 格式轉換或動畫錄製。
 - `upgrade.ps1` 使用已下載且解壓的新版封裝，不會線上自動更新。
 
-## v1.4 更新
+## v1.4.1 更新
 
 - 設定頁新增一鍵線上更新與可選的啟動後檢查新版。
 - GitHub Release 更新資訊採 Ed25519 簽章，獨立 Rust 更新器負責替換、重新啟動與失敗回復。
