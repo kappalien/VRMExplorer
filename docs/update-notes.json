@@ -1,0 +1,4 @@
+{
+  "zh": "新增 GitHub 簽章線上更新與一鍵更新。一般僅下載獨立程式更新包，保留設定與個人資料；更新後自動重啟，啟動失敗會嘗試回復舊版。",
+  "en": "Adds signed GitHub updates and one-click installation. Routine updates download a separate app package, preserve personal data and restart automatically, with rollback on startup failure."
+}

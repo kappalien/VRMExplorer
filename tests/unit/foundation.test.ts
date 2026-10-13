@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { defaults, validateSettings } from "../../src/core/settings";
 import i18n from "../../src/locales/i18n";
+import nativeUpdateMessages from "../../src-tauri/update-messages.json";
 describe("Portable settings boundary", () => {
   it("rejects unknown versions and unreasonable panel widths", () => {
     expect(() => validateSettings({ ...defaults, schemaVersion: 2 })).toThrow();
@@ -20,6 +21,9 @@ describe("locale completeness", () => {
             : [prefix + key],
         )
         .sort();
+    expect(keys(nativeUpdateMessages["zh-TW"])).toEqual(
+      keys(nativeUpdateMessages.en),
+    );
     for (const ns of [
       "common",
       "errors",
@@ -27,6 +31,7 @@ describe("locale completeness", () => {
       "preview",
       "animation",
       "pose",
+      "updates",
       "library",
       "settings",
     ])

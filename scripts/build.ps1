@@ -15,4 +15,5 @@ Run-Checked cargo @('fmt','--manifest-path','src-tauri/Cargo.toml','--','--check
 Run-Checked cargo @('test','--manifest-path','src-tauri/Cargo.toml','--locked')
 Run-Checked cargo @('clippy','--manifest-path','src-tauri/Cargo.toml','--locked','--all-targets','--','-D','warnings')
 Run-Checked npm.cmd @('run','tauri','build','--','--no-bundle')
+Run-Checked cargo @('build','--manifest-path','src-tauri/Cargo.toml','--release','--bin','vrm-updater','--locked')
 Run-Checked node @('scripts/package.mjs')

@@ -1,0 +1,10 @@
+{
+  "zh-TW": {
+    "title": "VRM Explorer 更新",
+    "failure": "更新未完成。若替換已開始，更新器會嘗試還原舊版。個人 data 不會被覆寫。請重新開啟並查看更新狀態；若仍無法啟動，請保留 data/updates 備份並取得完整可攜包。"
+  },
+  "en": {
+    "title": "VRM Explorer update",
+    "failure": "Update did not complete. If replacement started, the updater attempts to restore the previous version. Personal data is preserved. Reopen the app to inspect update status. If it cannot start, preserve data/updates backups and obtain a full Portable package."
+  }
+}

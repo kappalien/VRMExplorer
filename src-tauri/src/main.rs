@@ -4,9 +4,11 @@ mod filesystem;
 mod library;
 mod portable;
 mod pose_export;
+mod updates;
 use portable::{PortablePathService, Settings};
 use std::sync::Mutex;
 use tauri::Manager;
+use vrm_explorer::update_core;
 
 fn fixed_runtime(paths: &PortablePathService) -> Result<bool, Box<dyn std::error::Error>> {
     let manifest = paths.managed_file("", "release.json")?;
@@ -36,7 +38,7 @@ fn load_settings(
     let paths = state.lock().map_err(|_| "errors:storageBusy")?;
     let settings = paths.load().map_err(|_| "errors:invalidSettings")?;
     Ok(
-        serde_json::json!({"info":{"root":paths.root.to_string_lossy(),"writable":true,"runtime":if fixed_runtime(&paths).map_err(|_| "errors:invalidSettings")?{"fixed"}else{"system"}},"settings":settings}),
+        serde_json::json!({"info":{"root":paths.root.to_string_lossy(),"writable":true,"updatePending":std::env::args().any(|a|a=="--updated-job"),"runtime":if fixed_runtime(&paths).map_err(|_| "errors:invalidSettings")?{"fixed"}else{"system"}},"settings":settings}),
     )
 }
 #[tauri::command]
@@ -53,6 +55,19 @@ fn save_settings(
 fn main() {
     let result = (|| -> Result<(), Box<dyn std::error::Error>> {
         let paths = PortablePathService::from_executable()?;
+        let _application_lock = update_core::application_lock(&paths.root)?;
+        if let Some(journal) = update_core::pending(&paths.root)? {
+            let args: Vec<_> = std::env::args().collect();
+            let expected = args
+                .windows(2)
+                .any(|a| a[0] == "--updated-job" && a[1] == journal.job)
+                && journal.version == env!("CARGO_PKG_VERSION");
+            if !expected {
+                updates::spawn_helper(&paths.root, &journal.job, true)?;
+                std::process::exit(0);
+            }
+        }
+        let updater = updates::UpdateService::new(paths.root.clone());
         let runtime = paths.root.join("runtime/webview2");
         let use_fixed = fixed_runtime(&paths)?;
         // Set once before Tauri creates threads or WebViews, never from IPC.
@@ -69,10 +84,18 @@ fn main() {
             .manage(std::sync::Arc::new(Mutex::new(
                 filesystem::Broker::default(),
             )))
+            .manage(updater.clone())
             .manage(Mutex::new(paths))
             .manage(std::sync::Arc::new(Mutex::new(library)))
             .manage(std::sync::Arc::new(thumbnails))
             .invoke_handler(tauri::generate_handler![
+                updates::update_snapshot,
+                updates::update_preferences,
+                updates::check_update,
+                updates::prepare_update,
+                updates::install_update,
+                updates::cancel_update,
+                updates::update_acknowledge,
                 pose_export::export_pose,
                 load_settings,
                 save_settings,
@@ -99,6 +122,7 @@ fn main() {
                 library::start_scan
             ])
             .setup(move |app| {
+                updater.start_automatic_check();
                 tauri::WebviewWindowBuilder::new(
                     app,
                     "main",

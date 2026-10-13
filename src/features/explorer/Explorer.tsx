@@ -28,6 +28,18 @@ import { VirtualList } from "../../components/VirtualList";
 export function ExplorerToolbar() {
   const { t } = useTranslation();
   const s = useExplorer();
+  const nextView =
+    s.prefs.view === "details"
+      ? "thumbnails"
+      : s.prefs.view === "thumbnails"
+        ? "list"
+        : "details";
+  const nextViewLabel =
+    nextView === "thumbnails"
+      ? "explorer:thumbnailView"
+      : nextView === "list"
+        ? "explorer:compactView"
+        : "explorer:details";
   useEffect(() => {
     if (desktopAvailable) void useExplorer.getState().init();
   }, []);
@@ -103,24 +115,16 @@ export function ExplorerToolbar() {
       <button
         className="view-toggle"
         disabled={s.busy || !desktopAvailable}
-        aria-label={t(
-          s.prefs.view === "thumbnails"
-            ? "explorer:compactView"
-            : "explorer:thumbnailView",
-        )}
-        title={t(
-          s.prefs.view === "thumbnails"
-            ? "explorer:compactView"
-            : "explorer:thumbnailView",
-        )}
+        aria-label={t(nextViewLabel)}
+        title={t(nextViewLabel)}
         aria-pressed={s.prefs.view === "thumbnails"}
         onClick={() =>
           void s.updatePrefs({
-            view: s.prefs.view === "thumbnails" ? "list" : "thumbnails",
+            view: nextView,
           })
         }
       >
-        {s.prefs.view === "thumbnails" ? (
+        {nextView !== "thumbnails" ? (
           <List size={16} />
         ) : (
           <LayoutGrid size={16} />

@@ -613,3 +613,19 @@ code {
 .pose-panel > label {
   display: block;
 }
+
+.update-settings {
+  min-width: 0;
+}
+.update-settings label {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.update-notes {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.update-settings progress {
+  width: 100%;
+}

@@ -1,6 +1,6 @@
-# VRM Explorer v1.3 Portable Offline
+# VRM Explorer v1.4 Portable Offline
 
-下載並完整解壓 `VRM-Explorer-1.3.0-Offline-win-x64.zip`，開啟其中的 `vrm-explorer.exe`。最低發行目標 Windows 11 x64，請使用本機可寫入的資料夾。不要從壓縮檔、唯讀媒體或 UNC 路徑執行。隨附 Fixed WebView2 Runtime 154.0.4258.62；無需安裝 Node.js、Rust 或 MSVC。
+下載並完整解壓 `VRM-Explorer-1.4.0-Offline-win-x64.zip`，開啟其中的 `vrm-explorer.exe`。最低發行目標 Windows 11 x64，請使用本機可寫入的資料夾。不要從壓縮檔、唯讀媒體或 UNC 路徑執行。隨附 Fixed WebView2 Runtime 154.0.4258.62；無需安裝 Node.js、Rust 或 MSVC。
 
 Extract the complete ZIP into a writable local folder, then run `vrm-explorer.exe`. Target: Windows 11 x64. Fixed WebView2 Runtime 154.0.4258.62 is included; Node.js, Rust and MSVC are development tools only. Clean offline VM, non-admin and Windows 10 qualification: Not Tested.
 
@@ -8,7 +8,11 @@ Offline 使用前請閱讀並同意 licenses/Microsoft-WebView2-Fixed.html 的 M
 
 Before using Offline, read and agree to the Microsoft terms in licenses/Microsoft-WebView2-Fixed.html. Do not run or redistribute its Runtime if you disagree. This software includes Microsoft Defender SmartScreen, which collects and sends end-user information to Microsoft as described in the Microsoft Privacy Statement and Edge Privacy Whitepaper linked above. Redistribution requires passing these protections and notices to end users and distributors.
 
-Fixed Runtime 不會自動更新；請定期取得新版完整發行包。官方發行說明：https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution 。
+Fixed Runtime 本身不會自動更新；本程式線上更新在發行者提供新版 Runtime 更新包時一併更新。也可取得新版完整發行包。官方發行說明：https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution 。
+
+## v1.4 功能更新
+
+設定頁新增一鍵線上更新、下載進度、取消及可選的啟動後檢查。採用 GitHub Release、Ed25519 簽章資訊與獨立 Rust 更新器；一般更新不重複下載 WebView2。個人 data 保留，更新前提醒姿勢草稿；啟動失敗會嘗試回復舊版。詳見 v1.4-updates.md。
 
 ## v1.3 功能更新
 
@@ -38,7 +42,7 @@ Close the app and back up `data/` before upgrading. Extract the package separate
 
 ## 建置 / Build
 
-執行 `scripts/fetch-runtime.ps1` 驗證 Microsoft CAB 與簽章，再執行 `scripts/build.ps1`。發行腳本只產出 Offline ZIP 與 SHA-256，不產出 Standard。已建置 release EXE 時可執行 `node scripts/package.mjs`；相同版本輸出拒絕覆寫。
+執行 `scripts/fetch-runtime.ps1` 驗證 Microsoft CAB 與簽章，再執行 `scripts/build.ps1`。發行腳本產出 Offline ZIP、小型 Update ZIP、SHA-256 與簽章資訊，不產出 Standard。已建置主程式與更新器 release EXE，且備妥對應私鑰時可執行 `node scripts/package.mjs`；相同版本輸出拒絕覆寫。Runtime 變動時加上 `--with-runtime`，詳見 `v1.4-updates.md`。
 
 包內只有 EXE、文件、升級腳本、授權與 Fixed Runtime，不包含 `src`、`data`、VRM／VRMA 或測試資料。`licenses/dependencies.json` 保守列出鎖定依賴，包含跨平台／build dependencies，不代表每個 crate 都連入 Windows EXE。使用者模型的再散布權不由本程式授權。
 

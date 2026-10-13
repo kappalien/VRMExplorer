@@ -1,3 +1,4 @@
+/* global process */
 /* global console */
 import fs from "node:fs";
 import path from "node:path";
@@ -23,12 +24,18 @@ for (const mode of ["Offline"]) {
   const stage = path.join(root, "build", `package-${stamp}`, name);
   fs.mkdirSync(stage, { recursive: true });
   fs.copyFileSync(exe, path.join(stage, "vrm-explorer.exe"));
+  fs.copyFileSync(
+    path.join(root, "src-tauri/target/release/vrm-updater.exe"),
+    path.join(stage, "vrm-updater.exe"),
+  );
   fs.mkdirSync(path.join(stage, "docs"));
   for (const file of [
     "portable-release.md",
     "v1.2-release-notes.md",
     "v1.3-pose.md",
     "v1.3-release-notes.md",
+    "v1.4-updates.md",
+    "v1.4-release-notes.md",
     "licensing.md",
   ])
     fs.copyFileSync(
@@ -211,4 +218,13 @@ for (const mode of ["Offline"]) {
   );
   fs.writeFileSync(`${zip}.sha256`, `${hash(zip)}  ${path.basename(zip)}\n`);
   console.log(zip);
+  execFileSync(
+    "node",
+    [
+      path.join(root, "scripts/package-update.mjs"),
+      stage,
+      ...(process.argv.includes("--with-runtime") ? ["--with-runtime"] : []),
+    ],
+    { stdio: "inherit" },
+  );
 }

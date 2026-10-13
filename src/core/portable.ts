@@ -1,6 +1,11 @@
 import { invoke, isTauri } from "@tauri-apps/api/core";
 import { validateSettings, type Settings } from "./settings";
-export type PortableInfo = { root: string; writable: boolean; runtime: string };
+export type PortableInfo = {
+  root: string;
+  writable: boolean;
+  runtime: string;
+  updatePending?: boolean;
+};
 export const desktopAvailable = isTauri();
 export async function loadPortable(): Promise<{
   info: PortableInfo;

@@ -1,3 +1,4 @@
+import { zhUpdates, enUpdates } from "./updates";
 import { zhPose, enPose } from "./pose";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
@@ -10,7 +11,7 @@ const zh = {
     languageZh: "繁體中文",
     languageEn: "English",
     title: "VRM Explorer",
-    phase: "v1.3",
+    phase: "v1.4",
     navigation: "導覽",
     files: "檔案瀏覽器",
     preview: "預覽工作區",
@@ -49,7 +50,7 @@ const en = {
     languageZh: "繁體中文",
     languageEn: "English",
     title: "VRM Explorer",
-    phase: "v1.3",
+    phase: "v1.4",
     navigation: "Navigation",
     files: "File explorer",
     preview: "Preview workspace",
@@ -94,6 +95,7 @@ void i18n.use(initReactI18next).init({
       preview: { ...zhFeatures.preview, ...zhPreview.preview },
       animation: zhPreview.animation,
       pose: zhPose,
+      updates: zhUpdates,
       library: zhLibrary.library,
       settings: zhPerformance.settings,
       errors: {
@@ -112,6 +114,7 @@ void i18n.use(initReactI18next).init({
       preview: { ...enFeatures.preview, ...enPreview.preview },
       animation: enPreview.animation,
       pose: enPose,
+      updates: enUpdates,
       library: enLibrary.library,
       settings: enPerformance.settings,
       errors: {
@@ -134,6 +137,7 @@ void i18n.use(initReactI18next).init({
     "preview",
     "animation",
     "pose",
+    "updates",
     "library",
     "settings",
     "errors",

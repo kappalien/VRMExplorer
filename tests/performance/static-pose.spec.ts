@@ -81,6 +81,14 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
       __TAURI_INTERNALS__: {
         invoke: async (command: string, args: Record<string, unknown> = {}) => {
           switch (command) {
+            case "update_snapshot":
+              return {
+                phase: "idle",
+                supported: false,
+                automatic: false,
+                error: "",
+                result: "",
+              };
             case "load_settings":
               return {
                 info: { root: "C:\\qa", writable: true, runtime: "fixed" },
@@ -155,7 +163,7 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.locator(".badge")).toHaveText("v1.3");
+  await expect(page.locator(".badge")).toHaveText("v1.4");
   await page.getByRole("button", { name: "開啟 VRM", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "重新取景", exact: true }),

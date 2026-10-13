@@ -1,3 +1,5 @@
+import { invoke } from "@tauri-apps/api/core";
+import { UpdateSettings } from "../features/settings/UpdateSettings";
 import { version } from "../../package.json";
 import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -81,6 +83,10 @@ export function App() {
     media.addEventListener("change", apply);
     return () => media.removeEventListener("change", apply);
   }, [settings.theme]);
+  useEffect(() => {
+    if (loaded && info?.updatePending)
+      void invoke("update_acknowledge").catch(() => setError("updates:failed"));
+  }, [loaded, info]);
   const update = (patch: Partial<Settings>) => {
     setSaved(false);
     set({ ...settings, ...patch });
@@ -187,6 +193,7 @@ export function App() {
         </label>
         <section className="settings-tools">
           <CacheSettings />
+          <UpdateSettings />
           <section className="info">
             <h3>{t("systemInfo")}</h3>
             <p>

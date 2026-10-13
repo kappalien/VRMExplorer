@@ -10,6 +10,14 @@ test("direct browse supports folder selection, address input and history without
       __TAURI_INTERNALS__: {
         invoke: async (command: string, args: Record<string, unknown> = {}) => {
           switch (command) {
+            case "update_snapshot":
+              return {
+                phase: "idle",
+                supported: false,
+                automatic: false,
+                error: "",
+                result: "",
+              };
             case "load_settings":
               return {
                 info: { root: "C:\\qa", writable: true, runtime: "system" },
@@ -172,15 +180,16 @@ test("direct browse supports folder selection, address input and history without
   expect((await page.locator(".files .toolbar").boundingBox())!.height).toBe(
     toolbarHeight,
   );
+  await page.getByRole("button", { name: "詳細資訊", exact: true }).click();
+  await expect(page.locator(".file-list.details")).toContainText("2 MiB");
+  expect((await page.locator(".files .toolbar").boundingBox())!.height).toBe(
+    toolbarHeight,
+  );
   await page.getByRole("button", { name: "顯示縮圖", exact: true }).click();
   await page.reload();
   await expect(page.locator(".file-list.thumbnails")).toBeVisible();
-  // Restore details only in the test fixture to exercise file size preferences too.
-  await page.evaluate(() => {
-    const prefs = JSON.parse(localStorage.getItem("qa-explorer")!);
-    prefs.view = "details";
-    localStorage.setItem("qa-explorer", JSON.stringify(prefs));
-  });
+  await page.getByRole("button", { name: "精簡顯示", exact: true }).click();
+  await page.getByRole("button", { name: "詳細資訊", exact: true }).click();
   await page.reload();
   await expect(page.locator(".file-list.details")).toBeVisible();
   await page.getByRole("button", { name: "設定", exact: true }).click();
@@ -189,7 +198,7 @@ test("direct browse supports folder selection, address input and history without
     settings.getByRole("heading", { name: "系統資訊", exact: true }),
   ).toBeVisible();
   await expect(
-    settings.getByText("應用程式版本: 1.3.0", { exact: true }),
+    settings.getByText("應用程式版本: 1.4.0", { exact: true }),
   ).toBeVisible();
   await expect(
     settings.getByText("WebView2 模式: 系統安裝的執行環境", { exact: true }),
