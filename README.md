@@ -1,5 +1,7 @@
 # VRM Explorer
 
+**繁體中文** | [English](README.en.md)
+
 Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用及可攜式為優先，原始素材唯讀；繁體中文預設，支援英文介面。
 
 ## 下載
@@ -119,18 +121,10 @@ powershell -File scripts/build.ps1
 
 `node_modules/`、`src-tauri/target/`、`build/`、`releases/`、`data/` 與使用者 VRM／VRMA 不會進入 Git。原始碼、文件、截圖、第三方授權與 MPL 原始碼封存合計約 5.1 MiB；可攜 ZIP 另放 GitHub Release。
 
-## 授權與署名 / Licensing
+## 授權與署名
 
 原創程式碼、腳本及原創文件採用 [MIT License](LICENSE)，允許使用、修改、再散布及商用，包括出售副本或修改版；須保留著作權與授權文字。軟體按現況提供，不提供保證。此授權亦適用已發布版本的原創內容。
 
 第三方套件、Microsoft Runtime、展示模型及使用者素材保留各自條款，不因本專案採 MIT 而改變。完整範圍見 [授權與素材說明](docs/licensing.md)。第三方授權及著作權聲明見 `licenses/third-party/`，MPL 元件原始碼見 `licenses/mpl-sources.zip`。
 
-Original project code, scripts and original documentation, including previously published versions, are licensed under [MIT](LICENSE). Use, modification, redistribution and commercial use are permitted; preserve copyright and license notices. Third-party components, Microsoft Runtime and assets retain their own terms. See [Licensing](docs/licensing.md) for scope, source availability and screenshot attribution.
-
-## English
-
-VRM Explorer is a portable Windows desktop viewer for VRM avatars, VRMA animations and images. Download the full **v1.4.1 Offline package**, extract it into a writable local folder and run `vrm-explorer.exe`. Use **Settings → Online updates** to get the latest version. Fixed WebView2 is included; routine app updates exclude unchanged Runtime files. Original assets are read-only, and personal settings, indexes, cache and window preferences stay in `data/` beside the executable.
-
-Browse files in Details, Thumbnails or Compact view, load up to eight selected avatars into one scene, preview images, play animations, inspect skeletons, edit independent poses and export static VRMA or transparent scene PNG files. Per-model loading summaries report timings and texture estimates. The interface supports Traditional Chinese and English. See the [Pose guide](docs/v1.3-pose.md) for editing instructions and [GitHub Releases](https://github.com/kappalien/VRMExplorer/releases) for version history and release notes.
-
-依根目錄 [開發規格](VRM_Explorer_Codex_Development_Spec.md) 開發。
+依根目錄 [開發規格](VRM_Explorer_Development_Spec.md) 開發。

@@ -1,6 +1,6 @@
 # Project rules
 
-The authoritative specification is `VRM_Explorer_Codex_Development_Spec.md` at the repository root (the `_Final.md` name inside its example is stale).
+The authoritative specification is `VRM_Explorer_Development_Spec.md` at the repository root.
 
 - Implement and report one phase at a time. Stop at the phase boundary.
 - Windows desktop, Portable First; no silent AppData fallback.
