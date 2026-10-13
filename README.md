@@ -4,7 +4,7 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 
 ## 下載
 
-- [v1.3 Offline 可攜版（Windows x64，約 301 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.3.0/VRM-Explorer-1.3.0-Offline-win-x64.zip)
+- [v1.3 Offline 可攜版（Windows x64，約 310 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.3.0/VRM-Explorer-1.3.0-Offline-win-x64.zip)
 - [SHA-256 校驗碼](https://github.com/kappalien/VRMExplorer/releases/download/v1.3.0/VRM-Explorer-1.3.0-Offline-win-x64.zip.sha256)
 - [所有發行版本](https://github.com/kappalien/VRMExplorer/releases)
 
