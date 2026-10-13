@@ -18,9 +18,9 @@ The release target is **Windows 11 x64**. The extracted full package is approxim
 
 ## Example
 
-![VRM Explorer v1.3 screenshot: file browsing, model preview and custom pose editing](docs/images/vrm-explorer-v1.3-example.png)
+![VRM Explorer English interface: file browsing, model preview and custom pose editing](docs/images/vrm-explorer-en-example.png)
 
-Browse files on the left and preview the avatar in the center. The right panel contains Animation, Bones and Custom pose tabs. This screenshot shows the left shoulder being adjusted with rotation rings and XYZ angles; the pose can be exported as a static VRMA.
+Browse files on the left and preview the avatar in the center. The right panel contains Animation, Bones and Custom pose tabs. This screenshot shows hips rotation and translation being adjusted with rotation rings and XYZ values. The pose can be exported as a static VRMA, and the preview toolbar provides PNG export.
 
 The screenshot was supplied by the user. Its model, "神秘人B", is not included in the app, source code or releases; model rights remain with the original creator. See [Asset and third-party licensing](docs/licensing.md).
 

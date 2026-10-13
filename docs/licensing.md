@@ -30,7 +30,7 @@ Fixed WebView2 is licensed separately by Microsoft. Read and agree to the includ
 
 ## 目前 README 展示圖片
 
-目前 README 使用使用者提供的 v1.3 姿勢編輯截圖，畫面模型檔名為「神秘人B」。未提供作者或來源資訊，因此不另行推定授權。截圖展示應用操作，不提供模型檔案，模型權利仍屬原作者。
+繁體中文 README 使用使用者提供的 v1.3 姿勢編輯截圖，英文 README 使用使用者提供的 v1.5 英文介面截圖；兩張圖的模型檔名皆為「神秘人B」。未提供作者或來源資訊，因此不另行推定授權。截圖展示應用操作，不提供模型檔案，模型權利仍屬原作者。
 
 ## 歷史 README 展示模型
 
