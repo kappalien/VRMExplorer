@@ -1,3 +1,4 @@
+import { PosePanel } from "./PosePanel";
 import { BonePanel } from "./BonePanel";
 import { createPortal } from "react-dom";
 import { useEffect, useRef, useState } from "react";
@@ -27,7 +28,7 @@ export function PreviewWorkspace({
   const { model, animation, playback, setModel, setAnimation, update } =
     usePreview();
   const selected = useExplorer((s) => s.selected);
-  const [tab, setTab] = useState<"animation" | "bones">("animation");
+  const [tab, setTab] = useState<"animation" | "bones" | "pose">("animation");
   const [bones, setBones] = useState(false);
   const [grid, setGrid] = useState(true);
   const [axes, setAxes] = useState(true);
@@ -108,6 +109,9 @@ export function PreviewWorkspace({
     }
   };
   const image = selected && images.includes(selected.kind) ? selected : null;
+  useEffect(() => {
+    engine.current?.showPose(tab === "pose" && !image);
+  }, [tab, image, engineVersion]);
   return (
     <>
       <h2>{t("preview")}</h2>
@@ -193,7 +197,7 @@ export function PreviewWorkspace({
               role="tablist"
               aria-label={t("preview:inspectionTabs")}
             >
-              {(["animation", "bones"] as const).map((name) => (
+              {(["animation", "bones", "pose"] as const).map((name) => (
                 <button
                   key={name}
                   type="button"
@@ -207,14 +211,17 @@ export function PreviewWorkspace({
                       ["ArrowLeft", "ArrowRight", "Home", "End"].includes(e.key)
                     ) {
                       e.preventDefault();
+                      const tabs = ["animation", "bones", "pose"] as const;
                       const next =
-                        e.key === "Home"
-                          ? "animation"
-                          : e.key === "End"
-                            ? "bones"
-                            : tab === "animation"
-                              ? "bones"
-                              : "animation";
+                        tabs[
+                          e.key === "Home"
+                            ? 0
+                            : e.key === "End"
+                              ? 2
+                              : (tabs.indexOf(tab) +
+                                  (e.key === "ArrowRight" ? 1 : 2)) %
+                                3
+                        ];
                       setTab(next);
                       document
                         .getElementById(`inspection-tab-${next}`)
@@ -226,10 +233,24 @@ export function PreviewWorkspace({
                   {t(
                     name === "animation"
                       ? "common:animation"
-                      : "preview:boneTab",
+                      : name === "bones"
+                        ? "preview:boneTab"
+                        : "pose:tab",
                   )}
                 </button>
               ))}
+            </div>
+            <div
+              role="tabpanel"
+              id="inspection-panel-pose"
+              aria-labelledby="inspection-tab-pose"
+              hidden={tab !== "pose"}
+            >
+              <PosePanel
+                key={model?.path ?? "empty"}
+                getEngine={() => engine.current}
+                playback={playback}
+              />
             </div>
             <div
               role="tabpanel"

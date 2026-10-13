@@ -1,3 +1,5 @@
+import { PoseEditor } from "./PoseEditor";
+import { emptyPose } from "./pose";
 import { inspectBones } from "./bones";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js";
@@ -14,6 +16,8 @@ import type { Playback } from "../../stores/preview";
 import { WorkQueue } from "../../core/work-queue";
 import { ExpressionControl, type ExpressionMode } from "./expressions";
 export class PreviewEngine {
+  private poseEditor?: PoseEditor;
+  private poseVisible = false;
   private skeleton?: THREE.SkeletonHelper;
   private showBones = false;
   private expressions = new ExpressionControl();
@@ -73,9 +77,10 @@ export class PreviewEngine {
       const now = performance.now();
       const delta = Math.min((now - this.last) / 1000, 0.1);
       this.last = now;
-      this.mixer?.update(delta);
+      if (!this.poseEditor?.active) this.mixer?.update(delta);
       this.expressions.apply();
       this.vrm?.update(delta);
+      this.poseEditor?.tick();
       this.controls.update();
       this.renderer.render(this.scene, this.camera);
       if (now - this.notified > 100) {
@@ -86,6 +91,44 @@ export class PreviewEngine {
         });
       }
     });
+  }
+  showPose(visible: boolean) {
+    this.poseVisible = visible;
+    this.poseEditor?.show(visible);
+  }
+  editPose(capture = false) {
+    if (!this.vrm || this.disposed) return;
+    if (!this.poseEditor)
+      this.poseEditor = new PoseEditor(
+        this.vrm,
+        this.scene,
+        this.camera,
+        this.renderer.domElement,
+        this.controls,
+        () => this.pause(),
+        (pose) => this.onState({ pose }),
+      );
+    this.poseEditor.show(this.poseVisible);
+    this.poseEditor.start(capture);
+  }
+  selectPoseBone(bone: import("./pose").PoseBone) {
+    this.poseEditor?.select(bone);
+  }
+  poseAxis(axis: number, value: number, translation = false) {
+    this.poseEditor?.setAxis(axis, value, translation);
+  }
+  commitPose() {
+    this.poseEditor?.commit();
+  }
+  resetPose(all: boolean) {
+    this.poseEditor?.reset(all);
+  }
+  undoPose(direction: -1 | 1) {
+    this.poseEditor?.undo(direction);
+  }
+  exportPose() {
+    if (!this.poseEditor) throw new Error("errors:poseExport");
+    return this.poseEditor.bytes();
   }
   private contextLost = (event: Event) => {
     event.preventDefault();
@@ -291,6 +334,7 @@ export class PreviewEngine {
     }
   }
   play() {
+    this.poseEditor?.suspend();
     if (!this.action) return;
     if (this.staticPose) {
       this.action.reset().play();
@@ -310,6 +354,7 @@ export class PreviewEngine {
     this.onState({ playing: false });
   }
   stop() {
+    this.poseEditor?.suspend();
     this.action?.stop();
     this.vrm?.humanoid.resetNormalizedPose();
     this.vrm?.expressionManager?.resetValues();
@@ -318,6 +363,7 @@ export class PreviewEngine {
     this.onState({ playing: false, time: 0 });
   }
   seek(time: number) {
+    this.poseEditor?.suspend();
     if (!this.action || !this.mixer) return;
     const paused = this.action.paused;
     this.action.play();
@@ -402,6 +448,7 @@ export class PreviewEngine {
     if (this.skeleton) this.skeleton.visible = visible;
   }
   private clearAction() {
+    this.poseEditor?.suspend();
     this.staticPose = false;
     if (this.mixer && this.vrm) {
       this.mixer.stopAllAction();
@@ -421,6 +468,9 @@ export class PreviewEngine {
     });
   }
   private clearModel() {
+    this.poseEditor?.dispose();
+    this.poseEditor = undefined;
+    this.onState({ pose: { ...emptyPose } });
     this.clearAction();
     if (this.skeleton) {
       this.scene.remove(this.skeleton);

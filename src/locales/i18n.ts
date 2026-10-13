@@ -1,3 +1,4 @@
+import { zhPose, enPose } from "./pose";
 import i18n from "i18next";
 import { initReactI18next } from "react-i18next";
 import { zhFeatures, enFeatures } from "./features";
@@ -9,7 +10,7 @@ const zh = {
     languageZh: "繁體中文",
     languageEn: "English",
     title: "VRM Explorer",
-    phase: "v1.2",
+    phase: "v1.3",
     navigation: "導覽",
     files: "檔案瀏覽器",
     preview: "預覽工作區",
@@ -48,7 +49,7 @@ const en = {
     languageZh: "繁體中文",
     languageEn: "English",
     title: "VRM Explorer",
-    phase: "v1.2",
+    phase: "v1.3",
     navigation: "Navigation",
     files: "File explorer",
     preview: "Preview workspace",
@@ -92,10 +93,13 @@ void i18n.use(initReactI18next).init({
       ...zhFeatures,
       preview: { ...zhFeatures.preview, ...zhPreview.preview },
       animation: zhPreview.animation,
+      pose: zhPose,
       library: zhLibrary.library,
       settings: zhPerformance.settings,
       errors: {
         ...zh.errors,
+        poseExport: "無法匯出姿勢；請確認模型有有效的髖部骨骼。",
+        poseExists: "檔案已存在，請使用新的檔名。",
         ...zhFeatures.errors,
         ...zhPreview.errors,
         ...zhLibrary.errors,
@@ -107,10 +111,14 @@ void i18n.use(initReactI18next).init({
       ...enFeatures,
       preview: { ...enFeatures.preview, ...enPreview.preview },
       animation: enPreview.animation,
+      pose: enPose,
       library: enLibrary.library,
       settings: enPerformance.settings,
       errors: {
         ...en.errors,
+        poseExport:
+          "Could not export pose; check that the model has a valid hips bone.",
+        poseExists: "File already exists. Choose a new filename.",
         ...enFeatures.errors,
         ...enPreview.errors,
         ...enLibrary.errors,
@@ -125,6 +133,7 @@ void i18n.use(initReactI18next).init({
     "explorer",
     "preview",
     "animation",
+    "pose",
     "library",
     "settings",
     "errors",

@@ -22,7 +22,11 @@ Microsoft Defender SmartScreen 可能蒐集並傳送資訊至 Microsoft，見 [M
 
 Fixed WebView2 is licensed separately by Microsoft. Read and agree to the included terms before use or redistribution. Preserve Microsoft and runtime third-party notices, pass applicable terms and privacy notices to users and distributors, and do not describe this runtime as licensed under this project's terms.
 
-## README 展示模型
+## 目前 README 展示圖片
+
+目前 README 使用使用者提供的 v1.3 姿勢編輯截圖，畫面模型檔名為「神秘人B」。未提供作者或來源資訊，因此不另行推定授權。截圖展示應用操作，不提供模型檔案，模型權利仍屬原作者。
+
+## 歷史 README 展示模型
 
 模型名稱：**elegant_flower**。作者：**power_plant**；[作者聯絡頁](https://bsky.app/profile/m0toi.bsky.social)。這是使用者提供的操作截圖，模型並非本專案製作，也不隨程式、原始碼或 Release 提供。
 

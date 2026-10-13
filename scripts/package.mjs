@@ -27,6 +27,8 @@ for (const mode of ["Offline"]) {
   for (const file of [
     "portable-release.md",
     "v1.2-release-notes.md",
+    "v1.3-pose.md",
+    "v1.3-release-notes.md",
     "licensing.md",
   ])
     fs.copyFileSync(

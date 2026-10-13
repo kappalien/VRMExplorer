@@ -1,3 +1,4 @@
+import type { PoseState } from "../features/vrm-preview/pose";
 import type { BoneInfo } from "../features/vrm-preview/bones";
 import { create } from "zustand";
 import type { AssetEntry } from "../core/assets";
@@ -6,6 +7,7 @@ import type {
   ExpressionPreset,
 } from "../features/vrm-preview/expressions";
 export interface Playback {
+  pose: PoseState;
   bones: BoneInfo[];
   expression: ExpressionMode;
   availableExpressions: ExpressionPreset[];
@@ -23,6 +25,16 @@ export interface Playback {
   clipPath: string;
 }
 export const initialPlayback: Playback = {
+  pose: {
+    active: false,
+    selected: "hips",
+    angles: [0, 0, 0],
+    offset: [0, 0, 0],
+    available: [],
+    undo: false,
+    redo: false,
+    revision: 0,
+  },
   bones: [],
   expression: "animation",
   availableExpressions: [],

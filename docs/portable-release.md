@@ -1,6 +1,6 @@
-# VRM Explorer v1.2 Portable Offline
+# VRM Explorer v1.3 Portable Offline
 
-下載並完整解壓 `VRM-Explorer-1.2.0-Offline-win-x64.zip`，開啟其中的 `vrm-explorer.exe`。最低發行目標 Windows 11 x64，請使用本機可寫入的資料夾。不要從壓縮檔、唯讀媒體或 UNC 路徑執行。隨附 Fixed WebView2 Runtime 154.0.4258.62；無需安裝 Node.js、Rust 或 MSVC。
+下載並完整解壓 `VRM-Explorer-1.3.0-Offline-win-x64.zip`，開啟其中的 `vrm-explorer.exe`。最低發行目標 Windows 11 x64，請使用本機可寫入的資料夾。不要從壓縮檔、唯讀媒體或 UNC 路徑執行。隨附 Fixed WebView2 Runtime 154.0.4258.62；無需安裝 Node.js、Rust 或 MSVC。
 
 Extract the complete ZIP into a writable local folder, then run `vrm-explorer.exe`. Target: Windows 11 x64. Fixed WebView2 Runtime 154.0.4258.62 is included; Node.js, Rust and MSVC are development tools only. Clean offline VM, non-admin and Windows 10 qualification: Not Tested.
 
@@ -9,6 +9,10 @@ Offline 使用前請閱讀並同意 licenses/Microsoft-WebView2-Fixed.html 的 M
 Before using Offline, read and agree to the Microsoft terms in licenses/Microsoft-WebView2-Fixed.html. Do not run or redistribute its Runtime if you disagree. This software includes Microsoft Defender SmartScreen, which collects and sends end-user information to Microsoft as described in the Microsoft Privacy Statement and Edge Privacy Whitepaper linked above. Redistribution requires passing these protections and notices to end users and distributors.
 
 Fixed Runtime 不會自動更新；請定期取得新版完整發行包。官方發行說明：https://learn.microsoft.com/en-us/microsoft-edge/webview2/concepts/distribution 。
+
+## v1.3 功能更新
+
+新增自定義姿勢分頁、骨骼分組與 XYZ 角度、畫面控制點／旋轉環、髖部位移、動畫影格擷取、重設與復原／重做。匯出靜態 VRMA 另存新檔，不覆蓋原始素材。繁中／英文介面完整；草稿於換模型或結束程式時清除。[姿勢說明](v1.3-pose.md)
 
 ## v1.2 功能更新
 

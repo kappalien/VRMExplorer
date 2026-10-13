@@ -1,11 +1,11 @@
-# VRM Explorer v1.2 (codex開發)
+# VRM Explorer v1.3 (codex開發)
 
 Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用及可攜式為優先，原始素材唯讀；繁體中文預設，支援英文介面。
 
 ## 下載
 
-- [v1.2 Offline 可攜版（Windows x64，約 301 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.2.0/VRM-Explorer-1.2.0-Offline-win-x64.zip)
-- [SHA-256 校驗碼](https://github.com/kappalien/VRMExplorer/releases/download/v1.2.0/VRM-Explorer-1.2.0-Offline-win-x64.zip.sha256)
+- [v1.3 Offline 可攜版（Windows x64，約 301 MiB）](https://github.com/kappalien/VRMExplorer/releases/download/v1.3.0/VRM-Explorer-1.3.0-Offline-win-x64.zip)
+- [SHA-256 校驗碼](https://github.com/kappalien/VRMExplorer/releases/download/v1.3.0/VRM-Explorer-1.3.0-Offline-win-x64.zip.sha256)
 - [所有發行版本](https://github.com/kappalien/VRMExplorer/releases)
 
 一般使用者請下載上面的 Offline ZIP。GitHub 的 **Code → Download ZIP** 是原始碼，不能直接啟動。
@@ -14,11 +14,11 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 
 ## 使用範例
 
-![VRM Explorer v1.2 使用範例：左側瀏覽 VRM 檔案、中央預覽模型，右側提供動畫與骨骼分頁](docs/images/vrm-explorer-v1.2-example.png)
+![VRM Explorer v1.3 使用範例：檔案瀏覽、模型預覽與自定義姿勢編輯](docs/images/vrm-explorer-v1.3-example.png)
 
-左側選擇 VRM 檔案，中央預覽模型；右側可切換動畫與骨骼分頁。圖中示範播放 VRMA 動畫並選擇「悲傷」表情；中央下方可勾選骨骼疊加。
+左側瀏覽模型檔案，中央預覽角色；右側可切換動畫、骨骼及自定義姿勢分頁。圖中示範選擇左肩骨骼，以旋轉環與 XYZ 角度調整姿勢，並可匯出靜態 VRMA。
 
-展示模型 **elegant_flower／power_plant**，並非本專案製作，模型檔未隨程式提供。依所提供條款禁止模型再散布與法人使用；截圖僅供個人操作展示。[模型與第三方授權說明](docs/licensing.md)
+截圖由使用者提供，展示模型「神秘人B」不隨程式、原始碼或 Release 提供；模型權利仍屬原作者。[素材與第三方授權說明](docs/licensing.md)
 
 ## 快速開始
 
@@ -29,16 +29,45 @@ Windows 桌面 VRM／VRMA／圖片素材瀏覽與預覽工具。以離線使用�
 
 上次瀏覽資料夾、VRMA 來源與檢視方式會自動還原。請先閱讀包內 Microsoft Runtime 條款；使用與升級說明見 [Portable 發行文件](docs/portable-release.md)。
 
-## 功能
+## 全部功能
 
-- **檔案瀏覽**：上一個／下一個／上一層、磁碟選擇與路徑輸入。工具列的小圖示切換精簡清單／縮圖，維持工具列高度。
-- **骨骼檢視**：骨架疊加、人形骨骼映射、父節點與必要骨骼提示，與動畫區共用分頁。
-- **中央預覽**：VRM 0.x／1.0 預覽引擎、圖片預覽、旋轉與重新取景；滑鼠滾輪以游標位置為中心縮放。
-- **動畫區**：獨立來源自動掃描、簡單檔名清單、播放／暫停／停止／重播、循環、速度與時間軸；支援長度為 0 的單幀姿勢。
-- **表情**：自然、開心、生氣、悲傷、放鬆、驚訝及跟隨動畫；模型未提供的表情會停用。
-- **設定頁面**：繁中／英文、淺色／深色／跟隨系統、檔案大小單位及快取。大小可選自動、B、KB／MB／GB、KiB／MiB／GiB。
-- **Portable 資料**：設定、動畫索引、快取與 WebView 資料只寫在執行檔旁 `data/`，不會偷偷改寫到 AppData。
-- **素材安全**：VRM、VRMA 與圖片唯讀；不執行外部 JavaScript、DLL Plugin 或遠端執行碼。
+| 功能           | 說明                                                                                                                               |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| 支援素材       | VRM 0.x／1.0、VRMA，以及 PNG、JPG／JPEG、WebP、BMP 圖片。                                                                          |
+| 檔案瀏覽       | 磁碟選擇、路徑輸入、資料夾導覽、上一個／下一個／上一層、重新整理、清單／縮圖切換、檔案類型與大小。上次瀏覽位置及檢視方式自動保存。 |
+| 大型清單       | 虛擬化呈現，僅繪製可見項目；支援鍵盤移動與選取。                                                                                   |
+| 模型預覽       | 滑鼠旋轉、平移、以游標為中心縮放；正面／背面／左右視角與重新取景。                                                                 |
+| 場景選項       | 格線、骨骼疊加、座標軸、燈光與背景色。                                                                                             |
+| 模型資訊       | 顯示模型提供的名稱、作者、授權及網格／材質／貼圖／骨骼等資訊。                                                                     |
+| 圖片預覽       | 直接檢視支援的圖片素材。                                                                                                           |
+| 骨骼檢視       | 人形骨骼對應、模型節點、父節點、必要／選用狀態及缺少必要映射提示。                                                                 |
+| 動畫來源       | VRMA 可與模型位於不同資料夾或磁碟；選擇來源後自動掃描，以檔名清單選取動作，保存來源偏好。                                          |
+| 動畫播放       | 播放、暫停、停止、重播、循環、0.25×～2×速度與時間軸；單幀 VRMA 可套用並保持靜態姿勢。                                              |
+| 表情           | 跟隨動畫、自然、開心、生氣、悲傷、放鬆及驚訝；模型未提供的選項自動停用。                                                           |
+| 自定義姿勢     | 分組選擇軀幹、四肢與手指；局部 XYZ 角度滑桿／數值、畫面骨骼控制點與旋轉環，以及髖部位移。                                          |
+| 姿勢操作       | 擷取目前動畫姿勢、重設單骨骼或 T 姿勢、復原／重做；分頁切換保留草稿，播放動畫後可恢復編輯。                                        |
+| 姿勢匯出       | 另存單幀靜態 `.vrma`，可重新載入套用；只包含骨骼姿勢，不夾帶模型或貼圖，不覆蓋既有檔案。                                           |
+| 縮圖與快取     | 圖片縮圖及模型內嵌封面；設定快取容量、查看使用量與清除快取。                                                                       |
+| 語言與外觀     | 繁體中文預設、完整英文；淺色／深色／跟隨系統，可調整面板寬度。                                                                     |
+| 系統設定       | 檔案大小單位（自動、B、KB／MB／GB、KiB／MiB／GiB）、應用版本與 WebView2 模式。                                                     |
+| 可攜使用       | 隨附離線 WebView2；設定、索引、快取及 WebView 資料寫於執行檔旁 `data/`，沒有 AppData fallback。                                    |
+| 升級與素材保護 | 包含本機 `upgrade.ps1`，驗證發行檔案並保留個人資料；原始素材唯讀，不載入外部 JavaScript、DLL Plugin 或遠端執行碼。                 |
+
+### 使用限制
+
+- 模型沒有內嵌封面時，縮圖可能無法顯示；目前未提供模型快照縮圖。
+- 姿勢草稿於換模型或關閉程式時清除。匯出不包含表情、視線或物理模擬結果。
+- 不同身形可能產生手掌交叉或穿模；目前不含 IK、碰撞、FBX／BVH／GLB 格式轉換或動畫錄製。
+- `upgrade.ps1` 使用已下載且解壓的新版封裝，不會線上自動更新。
+
+## v1.3 更新
+
+- 新增「自定義姿勢」分頁，與動畫／骨骼區共用位置；介面支援繁中與英文。
+- 分組選擇軀幹、四肢及手指骨骼，使用 XYZ 角度滑桿、數值輸入或 3D 控制點與旋轉環調整。
+- 擷取目前動畫影格、髖部位移、單骨骼／T 姿勢重設、復原／重做；動畫播放後可恢復編輯草稿。
+- 匯出單幀靜態 `.vrma`，可重新載入套用。匯出另存新檔，不覆蓋既有素材；不包含表情、模型或貼圖。
+
+草稿在換模型或關閉程式時清除；不同身形仍可能穿模，此階段不包含碰撞或 IK。[姿勢操作說明](docs/v1.3-pose.md)
 
 ## v1.2 更新
 
@@ -115,6 +144,8 @@ powershell -File scripts/build.ps1
 Third-party licenses, source availability and screenshot attribution are documented in [Licensing](docs/licensing.md). No general open-source license has been selected for original project content.
 
 ## English
+
+v1.3 adds a bilingual Custom pose tab, bone groups, XYZ controls, viewport rotation gizmos, hips offsets, frame capture, reset, undo/redo and static VRMA export. Exports create a new file and contain no avatar meshes or textures. Drafts are cleared on model change or exit. See [Pose guide](docs/v1.3-pose.md).
 
 v1.2 adds a skeleton overlay and an Animation/Bones tab with raw humanoid mappings and required-bone status. Custom plugin support is removed; settings shows the application version and WebView2 mode. Existing preview, motion and Portable features remain. See [v1.2 release notes](docs/v1.2-release-notes.md).
 

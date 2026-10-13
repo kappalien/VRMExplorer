@@ -3,6 +3,7 @@ import { test, expect } from "@playwright/test";
 test("real loader supports a single-frame VRMA and switches back to a moving VRMA", async ({
   page,
 }) => {
+  test.setTimeout(90000);
   await page.addInitScript(() => {
     let scanned = false;
     const source = {
@@ -11,15 +12,17 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
       path: "C:\\Motions",
       enabled: true,
     };
-    const motions = ["單幀姿勢.vrma", "動態.vrma"].map((fileName, index) => ({
-      id: index + 1,
-      sourceId: 1,
-      path: `C:\\Motions\\${fileName}`,
-      fileName,
-      fileSize: 100,
-      modifiedTime: 0,
-      missing: false,
-    }));
+    const motions = ["單幀姿勢.vrma", "動態.vrma", "匯出姿勢.vrma"].map(
+      (fileName, index) => ({
+        id: index + 1,
+        sourceId: 1,
+        path: `C:\\Motions\\${fileName}`,
+        fileName,
+        fileSize: 100,
+        modifiedTime: 0,
+        missing: false,
+      }),
+    );
     const makePose = (buffer: ArrayBuffer) => {
       const view = new DataView(buffer);
       const jsonLength = view.getUint32(12, true);
@@ -117,7 +120,15 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
                 progress: 0,
                 status: "idle",
               };
+            case "export_pose":
+              Object.assign(globalThis, { exportedPose: args.bytes });
+              return true;
             case "read_asset": {
+              if (String(args.path).includes("匯出姿勢"))
+                return new Uint8Array(
+                  (globalThis as unknown as { exportedPose: number[] })
+                    .exportedPose,
+                ).buffer;
               const model = String(args.path).endsWith(".vrm");
               const buffer = await (
                 await fetch(model ? "/src/Vivian.vrm" : "/src/Test.vrma")
@@ -144,11 +155,11 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
   const errors: string[] = [];
   page.on("pageerror", (e) => errors.push(e.message));
   await page.goto("/");
-  await expect(page.locator(".badge")).toHaveText("v1.2");
+  await expect(page.locator(".badge")).toHaveText("v1.3");
   await page.getByRole("button", { name: "開啟 VRM", exact: true }).click();
   await expect(
     page.getByRole("button", { name: "重新取景", exact: true }),
-  ).toBeEnabled();
+  ).toBeEnabled({ timeout: 30000 });
   await page.getByRole("checkbox", { name: "骨骼疊加", exact: true }).check();
   await page.getByRole("tab", { name: "骨骼", exact: true }).click();
   await expect(
@@ -181,5 +192,81 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
     .poll(() => page.getByRole("slider", { name: "動畫時間軸" }).inputValue())
     .not.toBe("0");
   await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByRole("tab", { name: "自定義姿勢", exact: true }).click();
+  await page.getByRole("button", { name: "擷取目前姿勢", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "編輯中", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("combobox", { name: "選擇骨骼", exact: true })
+    .selectOption("leftUpperArm");
+  const angle = page.getByRole("spinbutton", {
+    name: "X 角度數值",
+    exact: true,
+  });
+  await angle.fill("35");
+  await angle.blur();
+  await expect(angle).toHaveValue("35");
+  await page.getByRole("button", { name: "復原", exact: true }).click();
+  await expect(angle).not.toHaveValue("35");
+  await page.getByRole("button", { name: "重做", exact: true }).click();
+  await expect(angle).toHaveValue("35");
+  await page.getByRole("tab", { name: "骨骼", exact: true }).click();
+  await page.getByRole("tab", { name: "自定義姿勢", exact: true }).click();
+  await expect(angle).toHaveValue("35");
+  await page
+    .getByRole("button", { name: "匯出靜態 VRMA", exact: true })
+    .click();
+  await expect(
+    page.getByRole("status").filter({ hasText: "姿勢已另存" }),
+  ).toBeVisible();
+  const binary = await page.evaluate(
+    () => (globalThis as unknown as { exportedPose: number[] }).exportedPose,
+  );
+  expect(binary.length).toBeLessThan(30000);
+  expect(binary.slice(0, 4)).toEqual([103, 108, 84, 70]);
+  await page.screenshot({ path: ".tmp-tests/custom-pose.png" });
+  await page.getByRole("tab", { name: "動畫區", exact: true }).click();
+  await page
+    .getByRole("button", { name: "匯出姿勢.vrma", exact: true })
+    .click();
+  await expect(apply).toBeEnabled();
+  await apply.click();
+  await page.getByRole("tab", { name: "自定義姿勢", exact: true }).click();
+  await page.getByRole("button", { name: "擷取目前姿勢", exact: true }).click();
+  await expect(angle).toHaveValue("35");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByRole("button", { name: "開啟 VRM", exact: true }).click();
+  await expect(
+    page.getByRole("button", { name: "繼續編輯", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "復原", exact: true }),
+  ).toBeDisabled();
+  await page.getByRole("button", { name: "設定", exact: true }).click();
+  await page
+    .getByRole("combobox", { name: "語言", exact: true })
+    .selectOption("en");
+  await page.getByRole("button", { name: "Close", exact: true }).click();
+  await expect(
+    page.getByRole("tab", { name: "Custom pose", exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Resume editing", exact: true }),
+  ).toBeVisible();
+  await page
+    .getByRole("button", { name: "Resume editing", exact: true })
+    .click();
+  await page
+    .getByRole("combobox", { name: "Select bone", exact: true })
+    .selectOption("leftUpperArm");
+  const englishAngle = page.getByRole("spinbutton", {
+    name: "X angle value",
+    exact: true,
+  });
+  await englishAngle.fill("-12.5");
+  await englishAngle.blur();
+  await expect(englishAngle).toHaveValue("-12.5");
+  await page.screenshot({ path: ".tmp-tests/custom-pose-en.png" });
   expect(errors).toEqual([]);
 });

@@ -3,6 +3,7 @@ mod cache;
 mod filesystem;
 mod library;
 mod portable;
+mod pose_export;
 use portable::{PortablePathService, Settings};
 use std::sync::Mutex;
 use tauri::Manager;
@@ -72,6 +73,7 @@ fn main() {
             .manage(std::sync::Arc::new(Mutex::new(library)))
             .manage(std::sync::Arc::new(thumbnails))
             .invoke_handler(tauri::generate_handler![
+                pose_export::export_pose,
                 load_settings,
                 save_settings,
                 filesystem::pick_asset,

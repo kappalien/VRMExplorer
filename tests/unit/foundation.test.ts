@@ -26,6 +26,7 @@ describe("locale completeness", () => {
       "explorer",
       "preview",
       "animation",
+      "pose",
       "library",
       "settings",
     ])
