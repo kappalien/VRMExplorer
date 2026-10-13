@@ -158,6 +158,22 @@ test("direct browse supports folder selection, address input and history without
   await address.fill("C:\\中文 資料夾");
   await address.press("Enter");
   await expect(page.locator(".files .file-list")).toContainText("2 MiB");
+  const initialListHeight = (await page
+    .locator(".files .file-list")
+    .boundingBox())!.height;
+  await page.setViewportSize({ width: 1200, height: 1300 });
+  await expect
+    .poll(
+      async () =>
+        (await page.locator(".files .file-list").boundingBox())!.height,
+    )
+    .toBeGreaterThan(initialListHeight + 390);
+  const fileBounds = (await page.locator(".files").boundingBox())!;
+  const countBounds = (await page.locator(".files .pagination").boundingBox())!;
+  expect(
+    fileBounds.y + fileBounds.height - countBounds.y - countBounds.height,
+  ).toBeLessThan(35);
+  await page.setViewportSize({ width: 1200, height: 900 });
   await page.getByRole("button", { name: "選擇來源", exact: true }).click();
   const motion = page.getByRole("button", { name: "招手.vrma", exact: true });
   await expect(motion).toBeVisible();
@@ -198,7 +214,7 @@ test("direct browse supports folder selection, address input and history without
     settings.getByRole("heading", { name: "系統資訊", exact: true }),
   ).toBeVisible();
   await expect(
-    settings.getByText("應用程式版本: 1.4.1", { exact: true }),
+    settings.getByText("應用程式版本: 1.4.2", { exact: true }),
   ).toBeVisible();
   await expect(
     settings.getByText("WebView2 模式: 系統安裝的執行環境", { exact: true }),

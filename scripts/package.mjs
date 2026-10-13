@@ -36,6 +36,7 @@ for (const mode of ["Offline"]) {
     "v1.3-release-notes.md",
     "v1.4-updates.md",
     "v1.4-release-notes.md",
+    "v1.4.2-release-notes.md",
     "licensing.md",
   ])
     fs.copyFileSync(
@@ -210,14 +211,16 @@ for (const mode of ["Offline"]) {
     ),
   );
   const zip = path.join(out, `${name}.zip`);
-  if (fs.existsSync(zip)) throw Error(`Refusing overwrite: ${zip}`);
-  execFileSync(
-    "powershell.exe",
-    ["-NoProfile", "-File", path.join(root, "scripts/zip.ps1"), stage, zip],
-    { stdio: "inherit" },
-  );
-  fs.writeFileSync(`${zip}.sha256`, `${hash(zip)}  ${path.basename(zip)}\n`);
-  console.log(zip);
+  if (process.argv.includes("--full")) {
+    if (fs.existsSync(zip)) throw Error(`Refusing overwrite: ${zip}`);
+    execFileSync(
+      "powershell.exe",
+      ["-NoProfile", "-File", path.join(root, "scripts/zip.ps1"), stage, zip],
+      { stdio: "inherit" },
+    );
+    fs.writeFileSync(`${zip}.sha256`, `${hash(zip)}  ${path.basename(zip)}\n`);
+    console.log(zip);
+  }
   execFileSync(
     "node",
     [

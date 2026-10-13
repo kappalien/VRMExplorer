@@ -1,4 +1,4 @@
 {
-  "zh": "新增 GitHub 簽章線上更新與一鍵更新。一般僅下載獨立程式更新包，保留設定與個人資料；更新後自動重啟，啟動失敗會嘗試回復舊版。",
-  "en": "Adds signed GitHub updates and one-click installation. Routine updates download a separate app package, preserve personal data and restart automatically, with rollback on startup failure."
+  "zh": "檔案清單與骨骼表格隨視窗高度填滿面板。新增視窗大小及最大化狀態記憶，下次啟動自動還原。本次只下載程式更新包，不重複下載 WebView2；個人資料保持完整。",
+  "en": "File lists and bone tables fill the panel height. Remembers and restores the normal window size and maximized state. This update downloads only the app package, excludes unchanged WebView2 and preserves personal data."
 }

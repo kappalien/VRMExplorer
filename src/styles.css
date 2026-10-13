@@ -292,6 +292,7 @@ h3 {
 }
 main {
   display: grid;
+  grid-template-rows: minmax(0, 1fr);
   flex: 1;
   min-height: 0;
   overflow: auto;
@@ -555,8 +556,42 @@ code {
   font-weight: 600;
 }
 .bone-table-scroll {
-  max-height: 320px;
+  min-height: 0;
   overflow: auto;
+}
+.files {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+}
+.files > .toolbar,
+.files > .pagination {
+  flex-shrink: 0;
+}
+.files > .file-list.virtual-viewport {
+  flex: 1 1 0;
+  height: auto;
+  min-height: 0;
+}
+.animation-workspace {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+.workspace-tabs {
+  flex-shrink: 0;
+}
+#inspection-panel-bones:not([hidden]),
+.bone-panel {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 0;
+}
+.bone-table-scroll {
+  flex: 1 1 0;
 }
 .bone-table {
   width: 100%;

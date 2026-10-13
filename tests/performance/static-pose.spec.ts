@@ -176,6 +176,22 @@ test("real loader supports a single-frame VRMA and switches back to a moving VRM
   await expect(
     page.getByRole("tabpanel", { name: "骨骼", exact: true }),
   ).toContainText("必要骨骼映射完整");
+  const initialBoneHeight = (await page
+    .locator(".bone-table-scroll")
+    .boundingBox())!.height;
+  await page.setViewportSize({ width: 1200, height: 1300 });
+  await expect
+    .poll(
+      async () =>
+        (await page.locator(".bone-table-scroll").boundingBox())!.height,
+    )
+    .toBeGreaterThan(initialBoneHeight + 390);
+  const paneBounds = (await page.locator(".animation-pane").boundingBox())!;
+  const tableBounds = (await page.locator(".bone-table-scroll").boundingBox())!;
+  expect(
+    paneBounds.y + paneBounds.height - tableBounds.y - tableBounds.height,
+  ).toBeLessThan(25);
+  await page.setViewportSize({ width: 1200, height: 900 });
   await page.getByRole("tab", { name: "動畫區", exact: true }).click();
   await page.getByRole("button", { name: "選擇來源", exact: true }).click();
   await page

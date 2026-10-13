@@ -5,6 +5,7 @@ mod library;
 mod portable;
 mod pose_export;
 mod updates;
+mod window_state;
 use portable::{PortablePathService, Settings};
 use std::sync::Mutex;
 use tauri::Manager;
@@ -79,12 +80,14 @@ fn main() {
         let data_directory = paths.managed("data/webview2")?;
         let library = library::Library::open(&paths)?;
         let thumbnails = cache::ThumbnailService::new(&paths)?;
+        let window_memory = window_state::WindowMemory::load(&paths)?;
         tauri::Builder::default()
             .plugin(tauri_plugin_dialog::init())
             .manage(std::sync::Arc::new(Mutex::new(
                 filesystem::Broker::default(),
             )))
             .manage(updater.clone())
+            .manage(window_memory)
             .manage(Mutex::new(paths))
             .manage(std::sync::Arc::new(Mutex::new(library)))
             .manage(std::sync::Arc::new(thumbnails))
@@ -123,20 +126,51 @@ fn main() {
             ])
             .setup(move |app| {
                 updater.start_automatic_check();
+                let (mut width, mut height, maximized) =
+                    app.state::<window_state::WindowMemory>().initial();
+                if let Some(monitor) = app.primary_monitor()? {
+                    let available = monitor
+                        .work_area()
+                        .size
+                        .to_logical::<f64>(monitor.scale_factor());
+                    width = width.min((available.width - 32.0).max(760.0));
+                    height = height.min((available.height - 64.0).max(480.0));
+                }
                 tauri::WebviewWindowBuilder::new(
                     app,
                     "main",
                     tauri::WebviewUrl::App("index.html".into()),
                 )
                 .title("VRM Explorer")
-                .inner_size(1200.0, 760.0)
+                .inner_size(width, height)
+                .maximized(maximized)
                 .min_inner_size(760.0, 480.0)
                 .data_directory(data_directory.clone())
                 .build()?;
                 let _ = app.get_webview_window("main");
                 Ok(())
             })
-            .run(tauri::generate_context!())?;
+            .on_window_event(|window, event| {
+                if window.label() == "main"
+                    && matches!(
+                        event,
+                        tauri::WindowEvent::Resized(_)
+                            | tauri::WindowEvent::ScaleFactorChanged { .. }
+                            | tauri::WindowEvent::CloseRequested { .. }
+                    )
+                {
+                    window.state::<window_state::WindowMemory>().observe(window);
+                    if matches!(event, tauri::WindowEvent::CloseRequested { .. }) {
+                        window_state::save_on_exit(window.app_handle());
+                    }
+                }
+            })
+            .build(tauri::generate_context!())?
+            .run(|app, event| {
+                if matches!(event, tauri::RunEvent::ExitRequested { .. }) {
+                    window_state::save_on_exit(app);
+                }
+            });
         Ok(())
     })();
     if let Err(error) = result {

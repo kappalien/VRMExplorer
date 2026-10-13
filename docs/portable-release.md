@@ -42,7 +42,7 @@ Close the app and back up `data/` before upgrading. Extract the package separate
 
 ## 建置 / Build
 
-執行 `scripts/fetch-runtime.ps1` 驗證 Microsoft CAB 與簽章，再執行 `scripts/build.ps1`。發行腳本產出 Offline ZIP、小型 Update ZIP、SHA-256 與簽章資訊，不產出 Standard。已建置主程式與更新器 release EXE，且備妥對應私鑰時可執行 `node scripts/package.mjs`；相同版本輸出拒絕覆寫。Runtime 變動時加上 `--with-runtime`，詳見 `v1.4-updates.md`。
+執行 `scripts/fetch-runtime.ps1` 驗證 Microsoft CAB 與簽章，再執行 `scripts/build.ps1`。發行腳本預設只產出小型 Update ZIP、SHA-256 與簽章資訊。已建置主程式與更新器 release EXE，且備妥對應私鑰時可執行 `node scripts/package.mjs`；相同版本輸出拒絕覆寫。Runtime 變動時加上 `--with-runtime`。只有明確需要新的完整可攜包時才使用 `--full`；GitHub 完整可攜版下載入口保留 v1.4.1，後續版本只上傳更新資產。詳見 `v1.4-updates.md`。
 
 包內只有 EXE、文件、升級腳本、授權與 Fixed Runtime，不包含 `src`、`data`、VRM／VRMA 或測試資料。`licenses/dependencies.json` 保守列出鎖定依賴，包含跨平台／build dependencies，不代表每個 crate 都連入 Windows EXE。使用者模型的再散布權不由本程式授權。
 

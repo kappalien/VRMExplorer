@@ -10,3 +10,4 @@ The authoritative specification is `VRM_Explorer_Codex_Development_Spec.md` at t
 - Verify APIs against official sources. Report unexecuted tests as Not Tested.
 - Preserve existing user files and data. Never package user data into releases.
 - No agent delegation is required for this project.
+- GitHub releases publish only signed update packages by default. Keep v1.4.1 as the full Portable download; publish another full Portable package only when the user explicitly requests it.
